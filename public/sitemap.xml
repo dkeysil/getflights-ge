@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://getflights.ge/en/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/flights/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/flights/vanilla-sky/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/vanilla-sky/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/flights/natakhtari-airport/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/natakhtari-airport/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/flights/tbilisi-batumi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/tbilisi-batumi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/flights/batumi-tbilisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/batumi-tbilisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/flights/tbilisi-mestia/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/tbilisi-mestia/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/flights/mestia-tbilisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/mestia-tbilisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/flights/tbilisi-ambrolauri/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/tbilisi-ambrolauri/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/flights/ambrolauri-tbilisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/ambrolauri-tbilisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/flights/kutaisi-mestia/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/kutaisi-mestia/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/flights/mestia-kutaisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/mestia-kutaisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/flights/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/flights/vanilla-sky/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/vanilla-sky/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/flights/natakhtari-airport/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/natakhtari-airport/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/flights/tbilisi-batumi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/tbilisi-batumi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/flights/batumi-tbilisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/batumi-tbilisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/flights/tbilisi-mestia/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/tbilisi-mestia/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/flights/mestia-tbilisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/mestia-tbilisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/flights/tbilisi-ambrolauri/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/tbilisi-ambrolauri/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/flights/ambrolauri-tbilisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/ambrolauri-tbilisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/flights/kutaisi-mestia/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/kutaisi-mestia/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/flights/mestia-kutaisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/mestia-kutaisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/flights/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/flights/vanilla-sky/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/vanilla-sky/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/flights/natakhtari-airport/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/natakhtari-airport/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/flights/tbilisi-batumi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/tbilisi-batumi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/flights/batumi-tbilisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/batumi-tbilisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/flights/tbilisi-mestia/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/tbilisi-mestia/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/flights/mestia-tbilisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/mestia-tbilisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/flights/tbilisi-ambrolauri/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/tbilisi-ambrolauri/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/flights/ambrolauri-tbilisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/ambrolauri-tbilisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/flights/kutaisi-mestia/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/kutaisi-mestia/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/flights/mestia-kutaisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/mestia-kutaisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/flights/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/flights/vanilla-sky/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/vanilla-sky/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/vanilla-sky/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/flights/natakhtari-airport/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/natakhtari-airport/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/natakhtari-airport/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/flights/tbilisi-batumi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/tbilisi-batumi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/tbilisi-batumi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/flights/batumi-tbilisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/batumi-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/batumi-tbilisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/flights/tbilisi-mestia/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/tbilisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/tbilisi-mestia/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/flights/mestia-tbilisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/mestia-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/mestia-tbilisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/flights/tbilisi-ambrolauri/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/tbilisi-ambrolauri/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/tbilisi-ambrolauri/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/flights/ambrolauri-tbilisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/ambrolauri-tbilisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/ambrolauri-tbilisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/flights/kutaisi-mestia/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/kutaisi-mestia/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/kutaisi-mestia/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/flights/mestia-kutaisi/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/flights/mestia-kutaisi/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/flights/mestia-kutaisi/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/blog/vanilla-sky-georgia-flights-guide/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/vanilla-sky-georgia-flights-guide/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/blog/how-to-buy-vanilla-sky-tickets/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/how-to-buy-vanilla-sky-tickets/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/blog/natakhtari-airport-guide/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/natakhtari-airport-guide/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/en/blog/vanilla-sky-baggage-weather-cancellations/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/vanilla-sky-baggage-weather-cancellations/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/blog/vanilla-sky-georgia-flights-guide/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/vanilla-sky-georgia-flights-guide/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/blog/how-to-buy-vanilla-sky-tickets/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/how-to-buy-vanilla-sky-tickets/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/blog/natakhtari-airport-guide/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/natakhtari-airport-guide/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ru/blog/vanilla-sky-baggage-weather-cancellations/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/vanilla-sky-baggage-weather-cancellations/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/blog/vanilla-sky-georgia-flights-guide/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/vanilla-sky-georgia-flights-guide/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/blog/how-to-buy-vanilla-sky-tickets/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/how-to-buy-vanilla-sky-tickets/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/blog/natakhtari-airport-guide/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/natakhtari-airport-guide/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ua/blog/vanilla-sky-baggage-weather-cancellations/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/vanilla-sky-baggage-weather-cancellations/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/blog/vanilla-sky-georgia-flights-guide/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/vanilla-sky-georgia-flights-guide/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/vanilla-sky-georgia-flights-guide/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/blog/how-to-buy-vanilla-sky-tickets/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/how-to-buy-vanilla-sky-tickets/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/how-to-buy-vanilla-sky-tickets/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/blog/natakhtari-airport-guide/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/natakhtari-airport-guide/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/natakhtari-airport-guide/" />
+  </url>
+  <url>
+    <loc>https://getflights.ge/ka/blog/vanilla-sky-baggage-weather-cancellations/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://getflights.ge/en/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://getflights.ge/ru/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="uk" href="https://getflights.ge/ua/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="ka" href="https://getflights.ge/ka/blog/vanilla-sky-baggage-weather-cancellations/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://getflights.ge/en/blog/vanilla-sky-baggage-weather-cancellations/" />
+  </url>
+</urlset>

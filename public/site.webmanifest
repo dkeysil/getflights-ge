@@ -1,0 +1,22 @@
+{
+  "name": "GetFlights.ge",
+  "short_name": "GetFlights",
+  "description": "Live Vanilla Sky flight days and booking handoff for Georgia routes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fbfc",
+  "theme_color": "#0e7c7b",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

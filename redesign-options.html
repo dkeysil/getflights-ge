@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vanilla Sky — Calendar-First Redesign Options</title>
+<style>html,body{margin:0;padding:0}</style>
+</head>
+<body>
+<style>
+  :root {
+    --paper: #ffffff;
+    --ground: #edf1f4;
+    --ground-2: #f5f8fa;
+    --ink: #14202b;
+    --ink-2: #2b3a47;
+    --muted: #5c6b77;
+    --faint: #93a1ab;
+    --line: #dce3e8;
+    --line-soft: #e9eef2;
+    --red: #c8102e;
+    --red-press: #a60d26;
+    --red-tint: #fdecee;
+    --sky: #0e7c7b;
+    --sky-ink: #075c5b;
+    --sky-tint: #e2f1f0;
+    --sans: "Helvetica Neue", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    --ease: cubic-bezier(0.23, 1, 0.32, 1);
+    --shadow: 0 1px 2px rgba(20, 32, 43, 0.04), 0 18px 40px rgba(20, 32, 43, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+    color: var(--ink);
+    font-family: var(--sans);
+    background:
+      radial-gradient(120% 60% at 50% -10%, rgba(14, 124, 123, 0.06), transparent 60%),
+      var(--ground);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--sky-ink);
+    margin: 0 0 14px;
+  }
+
+  .masthead h1 {
+    font-size: clamp(30px, 4.4vw, 46px);
+    line-height: 1.04;
+    letter-spacing: -0.022em;
+    font-weight: 800;
+    text-wrap: balance;
+    margin: 0 0 18px;
+    max-width: 18ch;
+  }
+
+  .masthead .lede {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 60ch;
+    margin: 0 0 28px;
+  }
+
+  /* shared-changes strip */
+  .global {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--paper);
+    box-shadow: var(--shadow);
+    margin-bottom: 64px;
+  }
+  .global h3 {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0 0 12px;
+    font-family: var(--mono);
+  }
+  .global .row { display: flex; gap: 11px; align-items: baseline; margin-bottom: 9px; }
+  .global .row:last-child { margin-bottom: 0; }
+  .global .row b { color: var(--ink); font-weight: 700; font-size: 14px; }
+  .global .row span { color: var(--muted); font-size: 14px; line-height: 1.4; }
+  .global .dot { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--sky); transform: translateY(-2px); }
+  .strike { color: var(--faint); text-decoration: line-through; text-decoration-color: rgba(147,161,171,0.6); }
+
+  /* option block */
+  .option { margin-bottom: 72px; }
+  .option-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; flex-wrap: wrap; }
+  .tag {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--paper);
+    background: var(--ink);
+    padding: 3px 9px;
+    border-radius: 6px;
+    text-transform: uppercase;
+  }
+  .option-head h2 { font-size: 25px; letter-spacing: -0.02em; margin: 0; font-weight: 800; }
+  .option-head .one-liner { color: var(--muted); font-size: 15px; }
+  .option > p.desc { color: var(--muted); font-size: 15px; line-height: 1.5; max-width: 64ch; margin: 8px 0 22px; }
+
+  .notes { display: flex; gap: 28px; margin: 20px 2px 0; padding: 0; list-style: none; flex-wrap: wrap; }
+  .notes li { font-size: 13.5px; color: var(--muted); position: relative; padding-left: 16px; max-width: 40ch; }
+  .notes li::before { content: ""; position: absolute; left: 0; top: 8px; width: 5px; height: 5px; border-radius: 50%; }
+  .notes li.good::before { background: var(--sky); }
+  .notes li.cost::before { background: var(--red); }
+  .notes li b { color: var(--ink-2); font-weight: 700; }
+
+  /* ===== app screen chrome ===== */
+  .screen {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--paper);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: rise 520ms var(--ease) both;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line-soft);
+    background: linear-gradient(180deg, rgba(245,248,250,0.7), rgba(255,255,255,0));
+  }
+  .wordmark { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -0.01em; font-size: 15px; }
+  .wordmark .bird { color: var(--red); font-size: 17px; line-height: 1; }
+  .chip-unofficial {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 2px 6px;
+  }
+  .live { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); font-family: var(--mono); }
+  .live .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--sky); box-shadow: 0 0 0 0 rgba(14,124,123,0.5); animation: pulse 2.4s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(14,124,123,0.45);} 70%{ box-shadow: 0 0 0 7px rgba(14,124,123,0);} 100%{ box-shadow:0 0 0 0 rgba(14,124,123,0);} }
+
+  /* route line */
+  .routeline { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 24px 6px; flex-wrap: wrap; }
+  .od { display: flex; align-items: center; gap: 16px; }
+  .od .city { display: flex; flex-direction: column; }
+  .od .city small { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--faint); text-transform: uppercase; }
+  .od .city b { font-size: 24px; letter-spacing: -0.02em; font-weight: 800; line-height: 1.05; }
+  .swap {
+    width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--paper); color: var(--ink-2); display: grid; place-items: center; cursor: pointer;
+    transition: transform 160ms var(--ease), border-color 160ms var(--ease), color 160ms var(--ease);
+    font-size: 16px;
+  }
+  .swap:hover { border-color: var(--sky); color: var(--sky); transform: rotate(180deg); }
+  .meta-right { display: flex; align-items: center; gap: 10px; }
+  .pax {
+    font-family: var(--mono); font-size: 13px; color: var(--ink-2);
+    border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px; background: var(--ground-2);
+  }
+  .linkish { color: var(--sky-ink); font-size: 13px; font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(7,92,91,0.3); padding-bottom: 1px; }
+
+  /* calendar */
+  .cal { padding: 16px 24px 24px; }
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .cal-head .mlabel { font-family: var(--mono); font-size: 14px; letter-spacing: 0.04em; font-weight: 600; }
+  .navbtns { display: flex; gap: 8px; }
+  .navbtns button {
+    width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--paper);
+    color: var(--ink-2); cursor: pointer; font-size: 14px; transition: border-color 150ms var(--ease), background 150ms var(--ease);
+  }
+  .navbtns button:hover { border-color: var(--sky); background: var(--ground-2); }
+  .month-count { font-family: var(--mono); font-size: 12px; color: var(--sky-ink); }
+
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .wd { text-align: center; font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; color: var(--faint); text-transform: uppercase; padding-bottom: 4px; }
+  .day {
+    position: relative; aspect-ratio: 1 / 0.82; min-height: 40px; border-radius: 10px; border: 1px solid transparent;
+    background: var(--ground-2); display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums;
+    transition: transform 140ms var(--ease), border-color 140ms var(--ease), background 140ms var(--ease);
+  }
+  .day.out { background: transparent; color: #c2ccd2; }
+  .day.avail { background: var(--sky-tint); color: var(--sky-ink); border-color: rgba(14,124,123,0.22); cursor: pointer; font-weight: 600; }
+  .day.avail::after { content: ""; position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--sky); }
+  .day.avail:hover { transform: translateY(-2px); border-color: var(--sky); }
+  .day.today { box-shadow: inset 0 0 0 1.5px rgba(200,16,46,0.35); }
+  .day.sel { background: var(--red); color: #fff; border-color: var(--red); cursor: pointer; box-shadow: 0 8px 20px rgba(200,16,46,0.28); }
+  .day.sel::after { background: #fff; }
+
+  /* day detail / ticket */
+  .day-detail { border-top: 1px solid var(--line-soft); padding: 18px 24px 24px; }
+  .dd-date { font-family: var(--mono); font-size: 13px; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 12px; }
+  .ticket {
+    display: flex; align-items: center; gap: 18px; justify-content: space-between;
+    border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: var(--paper);
+    transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+  }
+  .ticket:hover { border-color: rgba(200,16,46,0.4); box-shadow: 0 10px 26px rgba(20,32,43,0.07); }
+  .ticket .leg { display: flex; align-items: center; gap: 16px; min-width: 0; }
+  .ticket .time { font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+  .ticket .arc { display: flex; flex-direction: column; gap: 2px; color: var(--muted); }
+  .ticket .arc .codes { font-family: var(--mono); font-size: 13px; letter-spacing: 0.06em; color: var(--ink-2); }
+  .ticket .arc .dur { font-size: 12px; color: var(--faint); }
+  .ticket .price { text-align: right; }
+  .ticket .price .gel { font-family: var(--mono); font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .ticket .price .usd { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .book {
+    display: inline-flex; align-items: center; gap: 8px; border: 0; cursor: pointer;
+    background: var(--red); color: #fff; font-weight: 700; font-size: 14px; padding: 12px 18px; border-radius: 10px;
+    box-shadow: 0 8px 18px rgba(200,16,46,0.2); transition: transform 130ms var(--ease), background 150ms var(--ease);
+    white-space: nowrap;
+  }
+  .book:hover { background: var(--red-press); }
+  .book:active { transform: scale(0.97); }
+
+  /* ===== option 2: three-pane ===== */
+  .pane { display: grid; grid-template-columns: 220px 1fr; }
+  .routes-rail { border-right: 1px solid var(--line-soft); padding: 18px 14px; background: var(--ground-2); }
+  .rail-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); padding: 0 6px 10px; }
+  .route-item {
+    display: flex; flex-direction: column; gap: 3px; padding: 11px 12px; border-radius: 10px; cursor: pointer;
+    border: 1px solid transparent; transition: background 140ms var(--ease), border-color 140ms var(--ease); margin-bottom: 4px;
+  }
+  .route-item:hover { background: var(--paper); }
+  .route-item.on { background: var(--paper); border-color: var(--line); box-shadow: 0 4px 12px rgba(20,32,43,0.05); }
+  .route-item .pair { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .route-item .pair .a { color: var(--faint); }
+  .route-item.on .pair .a { color: var(--red); }
+  .route-item .next { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+  .pane-main { min-width: 0; }
+  .pane-main .cal { padding-bottom: 20px; }
+
+  /* ===== option 3: boarding pass ===== */
+  .bp-stage { padding: 30px 24px 36px; background:
+      radial-gradient(120% 80% at 50% 0%, rgba(14,124,123,0.05), transparent 55%); }
+  .boarding {
+    max-width: 560px; margin: 0 auto; background: var(--paper); border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(20,32,43,0.12); border: 1px solid var(--line); overflow: hidden;
+  }
+  .bp-head {
+    display: flex; align-items: center; justify-content: space-between; padding: 18px 22px;
+    background: var(--ink); color: #fff;
+  }
+  .bp-codes { display: flex; align-items: center; gap: 14px; font-family: var(--mono); }
+  .bp-codes .c { display: flex; flex-direction: column; }
+  .bp-codes .c b { font-size: 26px; letter-spacing: 0.04em; line-height: 1; }
+  .bp-codes .c span { font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #9fb0b9; margin-top: 4px; }
+  .bp-codes .plane { color: var(--red); font-size: 18px; }
+  .bp-tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: #9fb0b9; text-transform: uppercase; text-align: right; }
+  .bp-tag b { display: block; color: #fff; font-size: 14px; letter-spacing: 0.04em; margin-top: 3px; }
+  .perf { position: relative; height: 0; border-top: 2px dashed var(--line); margin: 0 18px; }
+  .perf::before, .perf::after { content: ""; position: absolute; top: -12px; width: 22px; height: 22px; border-radius: 50%; background: var(--ground); }
+  .perf::before { left: -29px; }
+  .perf::after { right: -29px; }
+  .bp-cal { padding: 18px 22px 8px; }
+  .bp-cal .grid .day { min-height: 34px; border-radius: 8px; font-size: 12.5px; }
+  .bp-stub {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    margin: 8px 18px 18px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--ground-2);
+  }
+  .bp-stub .s-time { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+  .bp-stub .s-mid { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .bp-stub .s-price { font-family: var(--mono); font-weight: 700; font-size: 17px; margin-left: auto; }
+
+  /* footer recommendation */
+  .recommend {
+    border: 1px solid var(--line); border-left: 3px solid var(--red); border-radius: 12px;
+    background: var(--paper); padding: 22px 24px; box-shadow: var(--shadow);
+  }
+  .recommend h3 { margin: 0 0 8px; font-size: 18px; letter-spacing: -0.01em; }
+  .recommend p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.55; max-width: 70ch; }
+  .recommend b { color: var(--ink); }
+
+  @media (max-width: 720px) {
+    .global { grid-template-columns: 1fr; }
+    .pane { grid-template-columns: 1fr; }
+    .routes-rail { border-right: 0; border-bottom: 1px solid var(--line-soft); display: flex; gap: 8px; overflow-x: auto; }
+    .route-item { min-width: 165px; margin-bottom: 0; }
+    .ticket { flex-direction: column; align-items: stretch; gap: 14px; }
+    .ticket .price { text-align: left; }
+    .book { justify-content: center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">Redesign proposal · calendar-first</p>
+    <h1>Three calendar-first ways to show Vanilla Sky flights</h1>
+    <p class="lede">
+      Same spine in all three: the calendar stays the hero, scoped to one direction, and every flight you
+      see is a direct link into <em>that</em> ticket's checkout on Vanilla Sky — no preview step, no second guess.
+      They differ only in where the day's tickets surface and how you switch direction.
+    </p>
+
+    <div class="global">
+      <div>
+        <h3>What changes everywhere</h3>
+        <div class="row"><span class="dot"></span><span><b>One action per flight.</b> The split "Find flights" / "Buy on Vanilla Sky" becomes a single <b>Book →</b> that deep-links to the exact flight's checkout.</span></div>
+        <div class="row"><span class="dot"></span><span><b>No dashboard filler.</b> The three stat cards and the "Checkout: Official" tile are gone.</span></div>
+        <div class="row"><span class="dot"></span><span><b>No plumbing in the copy.</b> No backend, no "route pairs", no hostname.</span></div>
+      </div>
+      <div>
+        <h3>Copy, before → after</h3>
+        <div class="row"><span class="strike">Live availability from ticket.vanillasky.ge</span><span>→&nbsp; <b>Live · updated just now</b></span></div>
+        <div class="row"><span class="strike">Find Vanilla Sky tickets without guessing dates</span><span>→&nbsp; <b>Only the days they actually fly</b></span></div>
+        <div class="row"><span class="strike">1 dates · Bookable routes</span><span>→&nbsp; <b>1 date · Flying now</b></span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ OPTION 1 — FOCUS ============ -->
+  <section class="option">
+    <div class="option-head">
+      <span class="tag">Option 1</span>
+      <h2>Focus</h2>
+      <span class="one-liner">One big calendar, the day's flight drops in beneath it.</span>
+    </div>
+    <p class="desc">
+      Single column, maximum calm. You pick a direction on one line, the month fills the screen, and selecting
+      an available day reveals that day's departure right below as a bookable ticket. Best fit for how small the
+      data actually is — nothing competes with the calendar.
+    </p>
+
+    <div class="screen">
+      <div class="topbar">
+        <div class="wordmark"><span class="bird">✦</span> vanilla sky <span class="chip-unofficial">unofficial</span></div>
+        <div class="live"><span class="pulse"></span> Live · updated just now</div>
+      </div>
+
+      <div class="routeline">
+        <div class="od">
+          <div class="city"><small>From</small><b>Batumi</b></div>
+          <button class="swap" title="Swap direction" aria-label="Swap direction">⇄</button>
+          <div class="city"><small>To</small><b>Natakhtari</b></div>
+        </div>
+        <div class="meta-right">
+          <span class="pax">1 adult</span>
+          <a class="linkish" href="#" onclick="return false">Change route</a>
+        </div>
+      </div>
+
+      <div class="cal">
+        <div class="cal-head">
+          <span class="mlabel">June 2026</span>
+          <span class="month-count">5 days available</span>
+          <span class="navbtns"><button aria-label="Previous month">‹</button><button aria-label="Next month">›</button></span>
+        </div>
+        <div class="grid">
+          <div class="wd">Mon</div><div class="wd">Tue</div><div class="wd">Wed</div><div class="wd">Thu</div><div class="wd">Fri</div><div class="wd">Sat</div><div class="wd">Sun</div>
+          <div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div>
+          <div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day avail">12</div><div class="day">13</div><div class="day">14</div>
+          <div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day avail">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div>
+          <div class="day">22</div><div class="day avail">23</div><div class="day">24</div><div class="day avail">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div>
+          <div class="day">29</div><div class="day sel today">30</div><div class="day out">1</div><div class="day out">2</div><div class="day out">3</div><div class="day out">4</div><div class="day out">5</div>
+        </div>
+      </div>
+
+      <div class="day-detail">
+        <div class="dd-date">Tuesday, 30 June 2026</div>
+        <div class="ticket">
+          <div class="leg">
+            <div class="time">14:00</div>
+            <div class="arc">
+              <span class="codes">BUS → NAT</span>
+              <span class="dur">Batumi → Natakhtari · 40 min</span>
+            </div>
+          </div>
+          <div class="price">
+            <div class="gel">125 ₾</div>
+            <div class="usd">≈ 40 $</div>
+          </div>
+          <button class="book">Book on Vanilla Sky →</button>
+        </div>
+      </div>
+    </div>
+
+    <ul class="notes">
+      <li class="good"><b>Strength:</b> calmest, least "app-like", scales down gracefully to a single flight.</li>
+      <li class="cost"><b>Trade-off:</b> you scroll to compare days; switching direction is a step, not always visible.</li>
+    </ul>
+  </section>
+
+  <!-- ============ OPTION 2 — RAIL ============ -->
+  <section class="option">
+    <div class="option-head">
+      <span class="tag">Option 2</span>
+      <h2>Rail</h2>
+      <span class="one-liner">Directions down the side, calendar swaps as you pick one.</span>
+    </div>
+    <p class="desc">
+      The clean evolution of what's there today. A slim list of the routes that are flying sits on the left —
+      this is the literal "calendar per direction." Pick one and the calendar re-fills; the selected day's
+      ticket sits right under it. You always see which directions exist without opening a dropdown.
+    </p>
+
+    <div class="screen">
+      <div class="topbar">
+        <div class="wordmark"><span class="bird">✦</span> vanilla sky <span class="chip-unofficial">unofficial</span></div>
+        <div class="live"><span class="pulse"></span> Live · updated just now</div>
+      </div>
+
+      <div class="pane">
+        <aside class="routes-rail">
+          <div class="rail-title">Flying now</div>
+          <div class="route-item on">
+            <span class="pair">Batumi <span class="a">→</span> Natakhtari</span>
+            <span class="next">next · 30 Jun · from 125 ₾</span>
+          </div>
+          <div class="route-item">
+            <span class="pair">Mestia <span class="a">→</span> Natakhtari</span>
+            <span class="next">next · 30 Jun · from 130 ₾</span>
+          </div>
+          <div class="route-item">
+            <span class="pair">Natakhtari <span class="a">→</span> Mestia</span>
+            <span class="next">next · 30 Jun · from 130 ₾</span>
+          </div>
+          <div class="route-item">
+            <span class="pair">Natakhtari <span class="a">→</span> Batumi</span>
+            <span class="next">next · 30 Jun · from 125 ₾</span>
+          </div>
+        </aside>
+
+        <div class="pane-main">
+          <div class="cal">
+            <div class="cal-head">
+              <span class="mlabel">June 2026 · Batumi → Natakhtari</span>
+              <span class="navbtns"><button aria-label="Previous month">‹</button><button aria-label="Next month">›</button></span>
+            </div>
+            <div class="grid">
+              <div class="wd">Mon</div><div class="wd">Tue</div><div class="wd">Wed</div><div class="wd">Thu</div><div class="wd">Fri</div><div class="wd">Sat</div><div class="wd">Sun</div>
+              <div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div>
+              <div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day avail">12</div><div class="day">13</div><div class="day">14</div>
+              <div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day avail">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div>
+              <div class="day">22</div><div class="day avail">23</div><div class="day">24</div><div class="day avail">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div>
+              <div class="day">29</div><div class="day sel today">30</div><div class="day out">1</div><div class="day out">2</div><div class="day out">3</div><div class="day out">4</div><div class="day out">5</div>
+            </div>
+          </div>
+          <div class="day-detail">
+            <div class="dd-date">Tuesday, 30 June 2026 · 1 adult</div>
+            <div class="ticket">
+              <div class="leg">
+                <div class="time">14:00</div>
+                <div class="arc">
+                  <span class="codes">BUS → NAT</span>
+                  <span class="dur">Batumi → Natakhtari · 40 min</span>
+                </div>
+              </div>
+              <div class="price">
+                <div class="gel">125 ₾</div>
+                <div class="usd">≈ 40 $</div>
+              </div>
+              <button class="book">Book →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="notes">
+      <li class="good"><b>Strength:</b> every direction visible at a glance; nearest to today, lowest-risk to build.</li>
+      <li class="cost"><b>Trade-off:</b> denser; the rail eats width on smaller screens (becomes a scroll strip on mobile).</li>
+    </ul>
+  </section>
+
+  <!-- ============ OPTION 3 — BOARDING PASS ============ -->
+  <section class="option">
+    <div class="option-head">
+      <span class="tag">Option 3</span>
+      <h2>Boarding pass</h2>
+      <span class="one-liner">The calendar lives inside a ticket; days are stubs you tear off.</span>
+    </div>
+    <p class="desc">
+      The one with a point of view. The whole tool is shaped like a boarding pass — route codes up top, a
+      perforated edge, the calendar tucked inside, and the chosen day as a tear-off stub. Leans into the
+      scenic-mountain-airline feel. The clearest answer to "make it original, not vibe-coded" — and the riskiest if you want neutral.
+    </p>
+
+    <div class="screen">
+      <div class="topbar">
+        <div class="wordmark"><span class="bird">✦</span> vanilla sky <span class="chip-unofficial">unofficial</span></div>
+        <div class="live"><span class="pulse"></span> Live · updated just now</div>
+      </div>
+
+      <div class="bp-stage">
+        <div class="boarding">
+          <div class="bp-head">
+            <div class="bp-codes">
+              <div class="c"><b>BUS</b><span>Batumi</span></div>
+              <span class="plane">✈</span>
+              <div class="c"><b>NAT</b><span>Natakhtari</span></div>
+            </div>
+            <div class="bp-tag">Pick a day<b>June 2026</b></div>
+          </div>
+
+          <div class="perf"></div>
+
+          <div class="bp-cal">
+            <div class="grid">
+              <div class="wd">M</div><div class="wd">T</div><div class="wd">W</div><div class="wd">T</div><div class="wd">F</div><div class="wd">S</div><div class="wd">S</div>
+              <div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div>
+              <div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day avail">12</div><div class="day">13</div><div class="day">14</div>
+              <div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day avail">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div>
+              <div class="day">22</div><div class="day avail">23</div><div class="day">24</div><div class="day avail">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div>
+              <div class="day">29</div><div class="day sel today">30</div><div class="day out">1</div><div class="day out">2</div><div class="day out">3</div><div class="day out">4</div><div class="day out">5</div>
+            </div>
+          </div>
+
+          <div class="bp-stub">
+            <div class="s-time">14:00</div>
+            <div class="s-mid">Tue 30 Jun · BUS → NAT · 40 min</div>
+            <div class="s-price">125 ₾</div>
+            <button class="book">Book →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="notes">
+      <li class="good"><b>Strength:</b> instantly memorable, on-theme, the least templated.</li>
+      <li class="cost"><b>Trade-off:</b> the metaphor needs upkeep as flights/dates grow; can tip into kitsch if overdone.</li>
+    </ul>
+  </section>
+
+  <div class="recommend">
+    <h3>My lean: Option 1, with Option 2's route rail one tap away</h3>
+    <p>
+      For a six-city shuttle with a handful of dates, <b>Focus</b> is the honest amount of interface — and it's
+      the furthest from looking generated. The route rail from <b>Rail</b> is worth keeping as a "Change route"
+      panel rather than permanent furniture. <b>Boarding pass</b> is the move if you'd rather the tool be
+      distinctive over neutral. Tell me which spine and I'll rebuild the real app around it.
+    </p>
+  </div>
+</div>
+</body>
+</html>

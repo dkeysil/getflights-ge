@@ -1,0 +1,14 @@
+node_modules/
+dist/
+artifacts/
+.wrangler/
+
+.env*
+.dev.vars*
+.agents/
+.codex/
+getflights.ge-Performance-on-Search-*/
+
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts

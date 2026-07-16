@@ -1,0 +1,51 @@
+{
+  "siteOrigin": "https://getflights.ge",
+  "defaultLocale": "en",
+  "xDefaultPath": "/",
+  "socialImage": {
+    "url": "https://getflights.ge/vanilla-sky-georgia-flight-preview.png",
+    "type": "image/png",
+    "width": "1200",
+    "height": "630",
+    "alt": "Small aircraft flying over Georgia's mountain routes."
+  },
+  "localeOrder": ["en", "ru", "ua", "ka"],
+  "locales": {
+    "en": {
+      "path": "/en/",
+      "hrefLang": "en",
+      "htmlLang": "en",
+      "title": "Vanilla Sky tickets and flights in Georgia - GetFlights.ge",
+      "description": "See every Vanilla Sky flight date in Georgia at a glance: live Vanilla Sky tickets for Tbilisi, Batumi, Mestia, Ambrolauri, and Kutaisi routes, with official booking.",
+      "ogTitle": "Vanilla Sky tickets and flights in Georgia - GetFlights.ge",
+      "ogDescription": "Every Vanilla Sky flight date in Georgia at a glance, with handoff to official booking."
+    },
+    "ru": {
+      "path": "/ru/",
+      "hrefLang": "ru",
+      "htmlLang": "ru",
+      "title": "Рейсы Vanilla Sky по Грузии - GetFlights.ge",
+      "description": "Все даты рейсов Vanilla Sky по Грузии на одной странице: живая доступность Тбилиси, Батуми, Местиа, Амбролаури и Кутаиси, оплата на официальном сайте.",
+      "ogTitle": "Рейсы Vanilla Sky по Грузии - GetFlights.ge",
+      "ogDescription": "Все даты рейсов Vanilla Sky по Грузии на одной странице с переходом к официальному бронированию."
+    },
+    "ua": {
+      "path": "/ua/",
+      "hrefLang": "uk",
+      "htmlLang": "uk",
+      "title": "Рейси Vanilla Sky Грузією - GetFlights.ge",
+      "description": "Усі дати рейсів Vanilla Sky Грузією на одній сторінці: жива наявність Тбілісі, Батумі, Местія, Амбролаурі та Кутаїсі, оплата на офіційному сайті.",
+      "ogTitle": "Рейси Vanilla Sky Грузією - GetFlights.ge",
+      "ogDescription": "Усі дати рейсів Vanilla Sky Грузією на одній сторінці з переходом до офіційного бронювання."
+    },
+    "ka": {
+      "path": "/ka/",
+      "hrefLang": "ka",
+      "htmlLang": "ka",
+      "title": "Vanilla Sky-ის ფრენები საქართველოში - GetFlights.ge",
+      "description": "Vanilla Sky-ის ყველა ფრენის თარიღი საქართველოში ერთ გვერდზე: თბილისის, ბათუმის, მესტიის, ამბროლაურისა და ქუთაისის ცოცხალი ხელმისაწვდომობა, გადახდა ოფიციალურ საიტზე.",
+      "ogTitle": "Vanilla Sky-ის ფრენები საქართველოში - GetFlights.ge",
+      "ogDescription": "Vanilla Sky-ის ყველა ფრენის თარიღი ერთ გვერდზე, ოფიციალურ დაჯავშნაზე გადასვლით."
+    }
+  }
+}
