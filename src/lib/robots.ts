@@ -1,17 +1,17 @@
-export const AI_CITATION_USER_AGENTS = [
+export const LLM_SEO_USER_AGENTS = [
   'OAI-SearchBot',
   'ChatGPT-User',
+  'GPTBot',
   'PerplexityBot',
   'ClaudeBot',
-  'Bingbot',
+  'Claude-User',
   'Googlebot',
-] as const;
-
-export const BLOCKED_TRAINING_USER_AGENTS = [
-  'GPTBot',
+  'Google-Extended',
+  'Bingbot',
   'CCBot',
   'Bytespider',
   'Amazonbot',
+  'Applebot',
   'Applebot-Extended',
   'meta-externalagent',
 ] as const;
@@ -20,19 +20,18 @@ const SITE_ORIGIN = 'https://getflights.ge';
 
 export function buildRobotsTxt() {
   return [
-    ...AI_CITATION_USER_AGENTS.flatMap((agent) => [
+    '# GetFlights.ge is intentionally open to search engines, AI answer engines, and LLM crawlers.',
+    '# Content Signals: search=yes allows indexing, ai-input=yes allows retrieval/grounding,',
+    '# ai-train=yes allows model training, and use=full allows generated answers to use the content.',
+    'User-agent: *',
+    'Content-Signal: search=yes,ai-input=yes,ai-train=yes,use=full',
+    'Allow: /',
+    '',
+    ...LLM_SEO_USER_AGENTS.flatMap((agent) => [
       `User-agent: ${agent}`,
       'Allow: /',
       '',
     ]),
-    ...BLOCKED_TRAINING_USER_AGENTS.flatMap((agent) => [
-      `User-agent: ${agent}`,
-      'Disallow: /',
-      '',
-    ]),
-    'User-agent: *',
-    'Allow: /',
-    '',
     `Sitemap: ${SITE_ORIGIN}/sitemap.xml`,
     '',
   ].join('\n');

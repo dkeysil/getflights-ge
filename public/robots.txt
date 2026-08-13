@@ -1,7 +1,17 @@
+# GetFlights.ge is intentionally open to search engines, AI answer engines, and LLM crawlers.
+# Content Signals: search=yes allows indexing, ai-input=yes allows retrieval/grounding,
+# ai-train=yes allows model training, and use=full allows generated answers to use the content.
+User-agent: *
+Content-Signal: search=yes,ai-input=yes,ai-train=yes,use=full
+Allow: /
+
 User-agent: OAI-SearchBot
 Allow: /
 
 User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
 Allow: /
 
 User-agent: PerplexityBot
@@ -10,31 +20,34 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
-User-agent: Bingbot
+User-agent: Claude-User
 Allow: /
 
 User-agent: Googlebot
 Allow: /
 
-User-agent: GPTBot
-Disallow: /
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
 
 User-agent: CCBot
-Disallow: /
+Allow: /
 
 User-agent: Bytespider
-Disallow: /
+Allow: /
 
 User-agent: Amazonbot
-Disallow: /
+Allow: /
+
+User-agent: Applebot
+Allow: /
 
 User-agent: Applebot-Extended
-Disallow: /
+Allow: /
 
 User-agent: meta-externalagent
-Disallow: /
-
-User-agent: *
 Allow: /
 
 Sitemap: https://getflights.ge/sitemap.xml

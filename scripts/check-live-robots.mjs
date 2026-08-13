@@ -3,17 +3,17 @@ const robotsUrl = process.env.ROBOTS_URL ?? 'https://getflights.ge/robots.txt';
 const requiredAllowedAgents = [
   'OAI-SearchBot',
   'ChatGPT-User',
+  'GPTBot',
   'PerplexityBot',
   'ClaudeBot',
-  'Bingbot',
+  'Claude-User',
   'Googlebot',
-];
-
-const expectedBlockedAgents = [
-  'GPTBot',
+  'Google-Extended',
+  'Bingbot',
   'CCBot',
   'Bytespider',
   'Amazonbot',
+  'Applebot',
   'Applebot-Extended',
   'meta-externalagent',
 ];
@@ -36,10 +36,12 @@ for (const agent of requiredAllowedAgents) {
   }
 }
 
-for (const agent of expectedBlockedAgents) {
-  if (!hasRootDisallow(text, agent)) {
-    failures.push(`${agent} is not explicitly blocked.`);
-  }
+if (/^Disallow:\s*\/\s*$/im.test(text)) {
+  failures.push('robots.txt still contains a root Disallow directive.');
+}
+
+if (!/Content-Signal:\s*search=yes,ai-input=yes,ai-train=yes,use=full/i.test(text)) {
+  failures.push('Permissive Content-Signal directive is missing.');
 }
 
 if (!/Sitemap:\s*https:\/\/getflights\.ge\/sitemap\.xml/i.test(text)) {
@@ -55,18 +57,17 @@ if (failures.length) {
 console.log(`Live robots policy check passed for ${robotsUrl}`);
 
 function hasRootDisallow(source, agent) {
-  const section = exactAgentSection(source, agent);
-  if (!section) return false;
-  return /^Disallow:\s*\/\s*$/im.test(section);
+  const sections = exactAgentSections(source, agent);
+  return sections.some((section) => /^Disallow:\s*\/\s*$/im.test(section));
 }
 
-function exactAgentSection(source, agent) {
+function exactAgentSections(source, agent) {
   const escaped = escapeRegExp(agent);
   const pattern = new RegExp(
     `(^|\\n)User-agent:\\s*${escaped}\\s*\\n([\\s\\S]*?)(?=\\nUser-agent:\\s*|$)`,
-    'i',
+    'gi',
   );
-  return pattern.exec(source)?.[2] ?? '';
+  return [...source.matchAll(pattern)].map((match) => match[2] ?? '');
 }
 
 function escapeRegExp(value) {
