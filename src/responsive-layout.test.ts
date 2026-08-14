@@ -58,7 +58,7 @@ const availabilitySnapshot = {
       ],
       returns: [],
     },
-    '7:4': { outbound: ['2026-07-05', '2026-07-06', '2026-07-07'], returns: [] },
+    '7:4': { outbound: ['2026-07-31', '2026-08-03', '2026-08-05'], returns: [] },
     '7:6': { outbound: ['2026-07-03', '2026-07-13'], returns: [] },
     '6:7': { outbound: ['2026-07-05', '2026-07-12'], returns: [] },
     '5:7': { outbound: ['2026-07-04'], returns: [] },

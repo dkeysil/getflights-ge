@@ -27,10 +27,10 @@ vi.mock('./lib/backend', () => ({
       },
     ],
     availability: {
-      '7:4': { outbound: ['2026-06-30'], returns: [] },
+      '7:4': { outbound: ['2026-07-31'], returns: [] },
       '6:5': { outbound: ['2026-07-01'], returns: [] },
     },
-    loadedAt: '2026-06-30T12:00:00.000Z',
+    loadedAt: '2026-07-30T12:00:00.000Z',
   })),
   searchFlights: vi.fn(async () => ({ resultUrl: '/ru/flights-form', flights: [] })),
   getOfficialPurchaseRequest: vi.fn(),
@@ -67,6 +67,15 @@ afterEach(() => {
 });
 
 describe('App localization', () => {
+  it('opens the current month by default', async () => {
+    const currentMonthLabel = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(new Date());
+    window.history.replaceState(null, '', '/en/');
+
+    render(<App />);
+
+    expect(await screen.findByText(currentMonthLabel)).toBeInTheDocument();
+  });
+
   it('initializes from the language URL and persists switcher changes', async () => {
     window.history.replaceState(null, '', '/?lang=ru');
     const user = userEvent.setup();
@@ -256,6 +265,75 @@ describe('App localization', () => {
     expect(screen.getAllByText('No dates available')).not.toHaveLength(0);
   });
 
+  it('does not infer ticket-release or sold-out status from unavailable upcoming-month dates', async () => {
+    const upcomingMonth = new Date();
+    upcomingMonth.setMonth(upcomingMonth.getMonth() + 1, 1);
+    const upcomingMonthLabel = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(
+      upcomingMonth,
+    );
+    window.history.replaceState(null, '', '/en/');
+    const user = userEvent.setup();
+    vi.mocked(loadAvailabilitySnapshot).mockResolvedValueOnce({
+      destinationMap: { '7': ['4'] },
+      routeCatalog: [
+        {
+          from: { id: '7', name: 'Tbilisi (Natakhtari airport)' },
+          destinations: [{ id: '4', name: 'Batumi' }],
+        },
+      ],
+      availability: {
+        '7:4': { outbound: [], returns: ['2026-08-02'] },
+      },
+      loadedAt: '2026-07-30T12:00:00.000Z',
+    });
+
+    render(<App />);
+
+    await user.click(await screen.findByRole('button', { name: 'Next month' }));
+
+    expect(await screen.findByText(upcomingMonthLabel)).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: `${upcomingMonthLabel} tickets are not released yet` }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/This does not mean tickets are sold out/i)).not.toBeInTheDocument();
+  });
+
+  it('lets you pick an available previous-month day that leads the next month grid', async () => {
+    window.history.replaceState(null, '', '/en/');
+    const user = userEvent.setup();
+    vi.mocked(loadAvailabilitySnapshot).mockResolvedValueOnce({
+      destinationMap: { '7': ['4'] },
+      routeCatalog: [
+        {
+          from: { id: '7', name: 'Tbilisi (Natakhtari airport)' },
+          destinations: [{ id: '4', name: 'Batumi' }],
+        },
+      ],
+      availability: {
+        '7:4': { outbound: ['2026-07-31', '2026-08-05'], returns: [] },
+      },
+      loadedAt: '2026-07-17T12:00:00.000Z',
+    });
+    const julyThirtyFirst = 'Choose available date Friday, July 31, 2026 for Tbilisi (Natakhtari airport) to Batumi';
+
+    render(<App />);
+
+    await screen.findByRole('button', { name: julyThirtyFirst });
+
+    // July 31 still leads the August grid, and it is marked available there.
+    expect(screen.getByRole('button', { name: julyThirtyFirst })).toBeEnabled();
+
+    await user.click(screen.getByRole('button', { name: julyThirtyFirst }));
+
+    expect(screen.getByRole('button', { name: julyThirtyFirst })).toHaveAttribute('aria-pressed', 'true');
+    // Selecting it moves the calendar back to July, where July 1 is in the grid.
+    expect(
+      screen.getByRole('button', {
+        name: 'Unavailable date Wednesday, July 1, 2026 for Tbilisi (Natakhtari airport) to Batumi',
+      }),
+    ).toBeInTheDocument();
+  });
+
   it('tracks a GA4 booking handoff event when the official booking handoff starts', async () => {
     window.history.replaceState(null, '', '/en/');
     const user = userEvent.setup();
@@ -301,7 +379,7 @@ describe('App localization', () => {
         route: '7:4',
         from_id: '7',
         to_id: '4',
-        outbound_date: '2026-06-30',
+        outbound_date: '2026-07-31',
         departure_time: '09:00',
         locale: 'en',
         official_locale: 'en',
@@ -333,7 +411,7 @@ describe('App localization', () => {
 
     expect(await screen.findByText('12:30')).toBeInTheDocument();
     expect(screen.queryByText('July 02')).not.toBeInTheDocument();
-    expect(screen.getByText('вт, 30 черв.')).toBeInTheDocument();
+    expect(screen.getByText('пт, 31 лип.')).toBeInTheDocument();
   });
 
   it('renders the localized blog index and preserves it during language switches', async () => {
@@ -444,7 +522,7 @@ describe('App localization', () => {
 
   it('shows already-available copy and still allows subscribing when the selected range has tickets', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
-    window.history.replaceState(null, '', '/en/?from=7&to=4&dateFrom=2026-06-01&dateTo=2026-06-30');
+    window.history.replaceState(null, '', '/en/?from=7&to=4&dateFrom=2026-07-31&dateTo=2026-07-31');
 
     render(<App />);
 

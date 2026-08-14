@@ -315,7 +315,6 @@ export function App() {
           ? selectedDate
           : firstAvailableRoute.dates.outbound[0] ?? null;
         setSelectedDate(nextSelectedDate);
-        if (nextSelectedDate) setMonth(monthFromIso(nextSelectedDate));
       }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : copy.couldNotLoad);
@@ -809,13 +808,16 @@ export function App() {
                     ]
                       .filter(Boolean)
                       .join(' ')}
-                    disabled={!day.inCurrentMonth || !day.isAvailable}
+                    disabled={!day.isAvailable}
                     key={day.iso}
                     type="button"
                     aria-label={dateButtonAriaLabel(day.iso, locale, fromCityName, toCityName, day.isAvailable)}
                     aria-pressed={selectedDate === day.iso}
                     aria-current={day.isToday ? 'date' : undefined}
-                    onClick={() => setSelectedDate(day.iso)}
+                    onClick={() => {
+                      setSelectedDate(day.iso);
+                      if (!day.inCurrentMonth) setMonth(monthFromIso(day.iso));
+                    }}
                   >
                     {day.dayOfMonth}
                   </button>
