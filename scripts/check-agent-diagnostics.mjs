@@ -22,11 +22,15 @@ await checkJson('openapi.json', (openapi) => {
   requireField(Boolean(openapi.paths?.['/api/alerts/subscribe']?.post), 'openapi.json documents alert subscription API');
 });
 
+await checkMirror('openapi.json', '.well-known/openapi.json');
+
 await checkText('auth.md', (auth) => {
   requireField(auth.includes('No authentication is required'), 'auth.md states public no-auth access');
   requireField(auth.includes('/api/availability'), 'auth.md lists public API access');
   requireField(auth.includes('magic links'), 'auth.md explains alert magic links');
 });
+
+await checkMirror('auth.md', '.well-known/auth.md');
 
 await checkText('_headers', (headers) => {
   requireField(headers.includes('rel="service-desc"'), '_headers exposes service-desc Link headers');
@@ -65,6 +69,18 @@ async function checkText(relativePath, inspect) {
     inspect(await readFile(join(publicDir, relativePath), 'utf8'));
   } catch (error) {
     failures.push(`${relativePath}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+async function checkMirror(canonicalPath, mirrorPath) {
+  try {
+    const [canonical, mirror] = await Promise.all([
+      readFile(join(publicDir, canonicalPath), 'utf8'),
+      readFile(join(publicDir, mirrorPath), 'utf8'),
+    ]);
+    requireField(canonical === mirror, `${mirrorPath} matches ${canonicalPath}`);
+  } catch (error) {
+    failures.push(`${mirrorPath}: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

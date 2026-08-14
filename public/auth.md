@@ -33,7 +33,7 @@ Alert endpoints may be feature-gated and can return `503` if email or database b
 
 - `POST /api/alerts/subscribe` creates or reuses a pending double-opt-in subscription for an email address.
 - `POST /api/alerts/manage-link` requests a management email. The response is intentionally generic and does not reveal whether an email has subscriptions.
-- `GET /api/alerts/manage?token=...` reads subscriptions scoped to the one-time management token.
+- `GET /api/alerts/manage?token=...` reads subscriptions scoped to the management token. The token is reusable until it expires 1 day after issuance, not one-time.
 - `POST /api/alerts/{id}/unsubscribe?token=...` unsubscribes one token-scoped subscription.
 
 Agents should not ask users for magic-link tokens unless the user is intentionally delegating alert management. Tokens must be treated as private credentials and should not be logged, indexed, or shared.

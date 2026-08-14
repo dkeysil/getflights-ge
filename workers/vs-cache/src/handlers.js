@@ -223,9 +223,9 @@ function normalizeFlightSearchInput(value, now = () => new Date()) {
   const tripType = value.tripType === 'round-trip' ? 'round-trip' : value.tripType === 'one-way' ? 'one-way' : null;
   const officialLocale = canonicalDataLocale;
   const passengers = value.passengers && typeof value.passengers === 'object' ? value.passengers : {};
-  const adult = toPassengerCount(passengers.adult);
-  const child = toPassengerCount(passengers.child);
-  const infant = toPassengerCount(passengers.infant);
+  const adult = toPassengerCount(passengers.adult, { min: 1, max: 4, defaultValue: 1 });
+  const child = toPassengerCount(passengers.child, { min: 0, max: 3, defaultValue: 0 });
+  const infant = toPassengerCount(passengers.infant, { min: 0, max: 3, defaultValue: 0 });
   const currentDate = now();
   const fromId = normalizeCityId(value.fromId);
   const toId = normalizeCityId(value.toId);
@@ -284,9 +284,10 @@ function startOfUtcDay(date) {
   return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 }
 
-function toPassengerCount(value) {
+function toPassengerCount(value, { min, max, defaultValue }) {
+  if (value === null || value === undefined || value === '') return defaultValue;
   const count = Number(value);
-  return Number.isInteger(count) && count >= 0 && count <= 4 ? count : null;
+  return Number.isInteger(count) && count >= min && count <= max ? count : null;
 }
 
 function json(payload, status = 200) {

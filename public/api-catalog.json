@@ -1,5 +1,4 @@
 {
-  "$schema": "https://getflights.ge/schemas/api-catalog.schema.json",
   "name": "GetFlights.ge API Catalog",
   "description": "Directory of public, same-origin web services and agent-readable resources for GetFlights.ge.",
   "lastUpdated": "2026-08-14",
