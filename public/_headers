@@ -1,2 +1,39 @@
 /*
   Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Link: </llms.txt>; rel="llms"; type="text/plain", </api-catalog.json>; rel="service-desc"; type="application/json", </openapi.json>; rel="service-desc"; type="application/openapi+json", </auth.md>; rel="authorization"; type="text/markdown", </flights.md>; rel="alternate"; type="text/markdown"; title="Flight route catalog", </booking.md>; rel="alternate"; type="text/markdown"; title="Booking handoff guide"
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+  Link: </api-catalog.json>; rel="service-desc"; type="application/json", </openapi.json>; rel="service-desc"; type="application/openapi+json", </auth.md>; rel="authorization"; type="text/markdown"
+
+/flights.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: </llms.txt>; rel="up"; type="text/plain", </api-catalog.json>; rel="service-desc"; type="application/json", </booking.md>; rel="related"; type="text/markdown"
+
+/booking.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: </llms.txt>; rel="up"; type="text/plain", </api-catalog.json>; rel="service-desc"; type="application/json", </auth.md>; rel="authorization"; type="text/markdown"
+
+/auth.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: </api-catalog.json>; rel="service-desc"; type="application/json", </openapi.json>; rel="service-desc"; type="application/openapi+json"
+
+/.well-known/auth.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: </auth.md>; rel="canonical"; type="text/markdown", </api-catalog.json>; rel="service-desc"; type="application/json"
+
+/api-catalog.json
+  Content-Type: application/json; charset=utf-8
+  Link: </openapi.json>; rel="service-desc"; type="application/openapi+json", </auth.md>; rel="authorization"; type="text/markdown", </llms.txt>; rel="llms"; type="text/plain"
+
+/.well-known/api-catalog.json
+  Content-Type: application/json; charset=utf-8
+  Link: </api-catalog.json>; rel="canonical"; type="application/json", </openapi.json>; rel="service-desc"; type="application/openapi+json", </auth.md>; rel="authorization"; type="text/markdown"
+
+/openapi.json
+  Content-Type: application/openapi+json; charset=utf-8
+  Link: </api-catalog.json>; rel="service-desc"; type="application/json", </auth.md>; rel="authorization"; type="text/markdown"
+
+/.well-known/openapi.json
+  Content-Type: application/openapi+json; charset=utf-8
+  Link: </openapi.json>; rel="canonical"; type="application/openapi+json", </api-catalog.json>; rel="service-desc"; type="application/json", </auth.md>; rel="authorization"; type="text/markdown"

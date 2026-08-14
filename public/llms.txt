@@ -1,6 +1,6 @@
 # GetFlights.ge
 
-Last updated: 2026-07-01
+Last updated: 2026-08-14
 Canonical site: https://getflights.ge/
 
 GetFlights.ge is an independent flight-search helper for Vanilla Sky domestic flights in Georgia. It shows live route days and fares, then sends travelers to the official Vanilla Sky booking site for payment and ticket issuance.
@@ -20,6 +20,9 @@ Important constraints:
 Agent-readable files:
 - /flights.md - agent-readable route catalog and flight-search facts
 - /booking.md - booking handoff, fare, passenger, and official-site caveats
+- /api-catalog.json - directory of public web services and agent-readable resources
+- /openapi.json - OpenAPI description for same-origin availability, fare lookup, and alert endpoints
+- /auth.md - login, token, and permission guidance for AI agents
 
 Canonical human pages:
 - https://getflights.ge/en/

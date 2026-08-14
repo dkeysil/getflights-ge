@@ -1,7 +1,7 @@
 import { blogSeoPostUrl, getBlogSeoPostByPath } from './blog-seo.ts';
 import { routeSeoPageUrl, routeSeoPages, type RouteSeoPage } from './route-seo.ts';
 
-export const AGENT_READABLE_LAST_UPDATED = '2026-07-01';
+export const AGENT_READABLE_LAST_UPDATED = '2026-08-14';
 
 const SITE_ORIGIN = 'https://getflights.ge';
 const ENGLISH_FLIGHTS_URL = `${SITE_ORIGIN}/en/flights/`;
@@ -41,6 +41,9 @@ export function buildLlmsTxt() {
     'Agent-readable files:',
     '- /flights.md - agent-readable route catalog and flight-search facts',
     '- /booking.md - booking handoff, fare, passenger, and official-site caveats',
+    '- /api-catalog.json - directory of public web services and agent-readable resources',
+    '- /openapi.json - OpenAPI description for same-origin availability, fare lookup, and alert endpoints',
+    '- /auth.md - login, token, and permission guidance for AI agents',
     '',
     'Canonical human pages:',
     '- https://getflights.ge/en/',

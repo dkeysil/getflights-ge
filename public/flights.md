@@ -1,6 +1,6 @@
 # GetFlights.ge flight routes
 
-Last updated: 2026-07-01
+Last updated: 2026-08-14
 Canonical human URL: https://getflights.ge/en/flights/
 
 This file summarizes the stable route catalog for agents. Use the route URL above, then select a highlighted date in the app to fetch live fares.

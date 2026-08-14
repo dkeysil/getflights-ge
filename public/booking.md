@@ -1,6 +1,6 @@
 # GetFlights.ge booking handoff
 
-Last updated: 2026-07-01
+Last updated: 2026-08-14
 Canonical human URL: https://getflights.ge/en/blog/how-to-buy-vanilla-sky-tickets/
 
 GetFlights.ge helps users find live Vanilla Sky flight dates and fares. Payment and ticket issuance happen on the official Vanilla Sky website.
