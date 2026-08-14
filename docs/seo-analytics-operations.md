@@ -33,23 +33,29 @@ Track indexed pages, sitemap processing errors, impressions, clicks, CTR, and av
 
 ## AI Crawler Robots Policy
 
-The repo publishes a crawler policy in `public/robots.txt`, but Cloudflare can prepend managed robots rules at request time. For AI search visibility, the live `https://getflights.ge/robots.txt` must not contain `# BEGIN Cloudflare Managed Content`.
+GetFlights.ge intentionally uses a permissive LLM SEO policy. The site should be open to search engines, AI answer engines, citation crawlers, user-triggered fetchers, and model-training crawlers.
 
-Recommended policy:
-- Allow search and citation agents: `OAI-SearchBot`, `ChatGPT-User`, `PerplexityBot`, `ClaudeBot`, `Bingbot`, `Googlebot`.
-- Block broad training or scraping agents where search access has a separate bot: `GPTBot`, `CCBot`, `Bytespider`, `Amazonbot`, `Applebot-Extended`, `meta-externalagent`.
+The repo publishes the canonical crawler policy in `public/robots.txt`. Cloudflare must not prepend managed AI crawler blocks at request time because those blocks override this site's LLM SEO policy for crawlers such as `ClaudeBot` and `GPTBot`.
+
+Required live policy:
+- Allow all crawlers with `User-agent: *` and `Allow: /`.
+- Include `Content-Signal: search=yes,ai-input=yes,ai-train=yes,use=full`.
+- Explicitly allow high-value search/AI agents: `OAI-SearchBot`, `ChatGPT-User`, `GPTBot`, `PerplexityBot`, `ClaudeBot`, `Claude-User`, `Googlebot`, `Google-Extended`, `Bingbot`, `CCBot`, `Bytespider`, `Amazonbot`, `Applebot`, `Applebot-Extended`, `meta-externalagent`.
+- Do not include root `Disallow: /` directives.
 - Keep `Sitemap: https://getflights.ge/sitemap.xml`.
 
 Cloudflare dashboard steps:
 1. Open the `getflights.ge` zone.
-2. Go to Security > Bots, or Security Settings and filter by Bot traffic.
-3. Disable the managed setting that prepends AI bot blocks to `robots.txt`:
+2. Go to Security > Bots / Bot traffic settings.
+3. Disable `AI bots protection` / `Block AI Scrapers and Crawlers`.
+4. Disable managed `robots.txt` injection:
    - `Instruct bot traffic with robots.txt`, or
    - `Set your preference to block training in robots.txt`.
-4. Keep enforced WAF blocking separate from the public `robots.txt` policy.
-5. Redeploy the Pages project after the repo `robots.txt` change.
-6. Run `npm run check:live-robots`.
+5. Keep `Crawler protection` and `Content bots protection` disabled unless there is an active abuse incident.
+6. Redeploy the Pages project after a repo `robots.txt` change.
+7. Run `npm run check:live-robots`.
 
 Expected verification:
 - `curl -sS https://getflights.ge/robots.txt` does not contain `BEGIN Cloudflare Managed`.
+- `curl -sS https://getflights.ge/robots.txt` contains `Content-Signal: search=yes,ai-input=yes,ai-train=yes,use=full`.
 - `npm run check:live-robots` exits successfully.
