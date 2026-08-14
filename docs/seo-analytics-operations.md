@@ -59,3 +59,28 @@ Expected verification:
 - `curl -sS https://getflights.ge/robots.txt` does not contain `BEGIN Cloudflare Managed`.
 - `curl -sS https://getflights.ge/robots.txt` contains `Content-Signal: search=yes,ai-input=yes,ai-train=yes,use=full`.
 - `npm run check:live-robots` exits successfully.
+
+## Cloudflare AI Crawl Control Level 2 diagnostics
+
+The project exposes the Level 2 technical-groundwork artifacts Cloudflare expects AI crawlers to discover site data and APIs:
+
+- API Catalog: `https://getflights.ge/api-catalog.json` and `https://getflights.ge/.well-known/api-catalog.json`.
+- OpenAPI service description: `https://getflights.ge/openapi.json` and `https://getflights.ge/.well-known/openapi.json`.
+- Auth.md: `https://getflights.ge/auth.md` and `https://getflights.ge/.well-known/auth.md`.
+- Link Headers: configured in `public/_headers` for all pages plus the agent-readable files above.
+
+Run local verification before deploying:
+
+```bash
+npm run check:agent-diagnostics
+npm run build
+```
+
+After deployment, verify representative live headers and files:
+
+```bash
+curl -I https://getflights.ge/
+curl -sS https://getflights.ge/api-catalog.json
+curl -sS https://getflights.ge/openapi.json
+curl -sS https://getflights.ge/auth.md
+```

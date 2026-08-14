@@ -1,0 +1,303 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "GetFlights.ge public API",
+    "version": "2026-08-14",
+    "description": "Same-origin APIs used by GetFlights.ge to expose cached Vanilla Sky route availability, live fare lookups, and optional ticket alerts. GetFlights.ge does not sell tickets or process payments; booking happens on the official Vanilla Sky website."
+  },
+  "servers": [
+    {
+      "url": "https://getflights.ge",
+      "description": "Production"
+    }
+  ],
+  "security": [],
+  "paths": {
+    "/api/availability": {
+      "get": {
+        "summary": "Get cached route availability",
+        "description": "Returns the route catalog, destination map, and dates currently known to have Vanilla Sky availability. No authentication required.",
+        "operationId": "getAvailability",
+        "tags": ["availability"],
+        "responses": {
+          "200": {
+            "description": "Availability snapshot",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AvailabilitySnapshot" }
+              }
+            }
+          },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      }
+    },
+    "/api/availability/refresh": {
+      "post": {
+        "summary": "Refresh route availability cache",
+        "description": "Refreshes the availability cache. Intended for the app UI; agents should prefer GET /api/availability unless a user explicitly asks for a refresh.",
+        "operationId": "refreshAvailability",
+        "tags": ["availability"],
+        "responses": {
+          "200": {
+            "description": "Fresh availability snapshot",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AvailabilitySnapshot" }
+              }
+            }
+          },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      }
+    },
+    "/api/flights": {
+      "get": {
+        "summary": "Get live/cached fare options for a route/date",
+        "description": "Returns Vanilla Sky fare/search-result HTML for a route/date known to be available. Agents must not invent fares when this endpoint errors or returns no flights.",
+        "operationId": "getFlights",
+        "tags": ["flights"],
+        "parameters": [
+          { "$ref": "#/components/parameters/tripType" },
+          { "$ref": "#/components/parameters/fromId" },
+          { "$ref": "#/components/parameters/toId" },
+          { "$ref": "#/components/parameters/outboundDate" },
+          { "$ref": "#/components/parameters/returnDate" },
+          { "$ref": "#/components/parameters/adult" },
+          { "$ref": "#/components/parameters/child" },
+          { "$ref": "#/components/parameters/infant" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Flight fare lookup result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FlightSearchResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "502": { "$ref": "#/components/responses/BadGateway" }
+        }
+      }
+    },
+    "/api/flights/refresh": {
+      "post": {
+        "summary": "Refresh fare options for a route/date",
+        "description": "Refreshes live/cached fare results for a known available route/date. Accepts the same fields as GET /api/flights in JSON or query parameters.",
+        "operationId": "refreshFlights",
+        "tags": ["flights"],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/FlightSearchInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fresh flight fare lookup result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FlightSearchResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "502": { "$ref": "#/components/responses/BadGateway" }
+        }
+      }
+    },
+    "/api/alerts/subscribe": {
+      "post": {
+        "summary": "Subscribe to route/date ticket alerts",
+        "description": "Creates or reuses a double-opt-in email alert subscription. Feature-gated; may return 503 if alerts are not configured.",
+        "operationId": "subscribeToAlerts",
+        "tags": ["alerts"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AlertSubscribeRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Subscription request accepted" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      }
+    },
+    "/api/alerts/manage-link": {
+      "post": {
+        "summary": "Request an alert management link",
+        "description": "Sends a magic-link email for managing subscriptions when matching subscriptions exist. Returns a generic response to avoid account discovery.",
+        "operationId": "requestAlertManageLink",
+        "tags": ["alerts"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ManageLinkRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Generic success response" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      }
+    },
+    "/api/alerts/manage": {
+      "get": {
+        "summary": "List alert subscriptions for a magic token",
+        "description": "Returns subscriptions scoped to a valid manage token.",
+        "operationId": "manageAlerts",
+        "tags": ["alerts"],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Magic-link token from the management email."
+          }
+        ],
+        "responses": {
+          "200": { "description": "Scoped alert subscriptions" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "403": { "description": "Invalid or expired token" },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      }
+    },
+    "/api/alerts/{id}/unsubscribe": {
+      "post": {
+        "summary": "Unsubscribe one alert subscription",
+        "description": "Marks one subscription as unsubscribed when the supplied manage token is valid for that subscription.",
+        "operationId": "unsubscribeAlert",
+        "tags": ["alerts"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Subscription unsubscribed" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "403": { "description": "Invalid or expired token" },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "tripType": { "name": "tripType", "in": "query", "required": true, "schema": { "type": "string", "enum": ["one-way", "round-trip"] } },
+      "fromId": { "name": "fromId", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Vanilla Sky city id from the route catalog." },
+      "toId": { "name": "toId", "in": "query", "required": true, "schema": { "type": "string" }, "description": "Vanilla Sky city id from the route catalog." },
+      "outboundDate": { "name": "outboundDate", "in": "query", "required": true, "schema": { "type": "string", "format": "date" } },
+      "returnDate": { "name": "returnDate", "in": "query", "required": false, "schema": { "type": "string", "format": "date" } },
+      "adult": { "name": "adult", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "maximum": 4, "default": 1 } },
+      "child": { "name": "child", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 0, "maximum": 3, "default": 0 } },
+      "infant": { "name": "infant", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 0, "maximum": 3, "default": 0 } }
+    },
+    "schemas": {
+      "AvailabilitySnapshot": {
+        "type": "object",
+        "required": ["destinationMap", "routeCatalog", "availability", "loadedAt"],
+        "properties": {
+          "destinationMap": { "type": "object", "additionalProperties": true },
+          "routeCatalog": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+          "availability": { "type": "object", "additionalProperties": true },
+          "loadedAt": { "type": "string", "format": "date-time" },
+          "cacheStatus": { "type": "string" },
+          "stale": { "type": "boolean" }
+        }
+      },
+      "FlightSearchInput": {
+        "type": "object",
+        "required": ["tripType", "fromId", "toId", "outboundDate", "passengers"],
+        "properties": {
+          "tripType": { "type": "string", "enum": ["one-way", "round-trip"] },
+          "fromId": { "type": "string" },
+          "toId": { "type": "string" },
+          "outboundDate": { "type": "string", "format": "date" },
+          "returnDate": { "type": "string", "format": "date" },
+          "passengers": { "$ref": "#/components/schemas/Passengers" }
+        }
+      },
+      "Passengers": {
+        "type": "object",
+        "properties": {
+          "adult": { "type": "integer", "minimum": 1, "maximum": 4, "default": 1 },
+          "child": { "type": "integer", "minimum": 0, "maximum": 3, "default": 0 },
+          "infant": { "type": "integer", "minimum": 0, "maximum": 3, "default": 0 }
+        }
+      },
+      "FlightSearchResult": {
+        "type": "object",
+        "required": ["resultUrl", "html"],
+        "properties": {
+          "resultUrl": { "type": "string", "format": "uri" },
+          "html": { "type": "string", "description": "Official Vanilla Sky fare-result HTML parsed by the app UI." },
+          "loadedAt": { "type": "string", "format": "date-time" },
+          "cacheStatus": { "type": "string" },
+          "stale": { "type": "boolean" }
+        }
+      },
+      "AlertSubscribeRequest": {
+        "type": "object",
+        "required": ["email", "fromId", "toId", "dateFrom", "dateTo", "locale"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "fromId": { "type": "string" },
+          "toId": { "type": "string" },
+          "dateFrom": { "type": "string", "format": "date" },
+          "dateTo": { "type": "string", "format": "date" },
+          "locale": { "type": "string", "enum": ["en", "ru", "ua", "ka"] }
+        }
+      },
+      "ManageLinkRequest": {
+        "type": "object",
+        "required": ["email", "locale"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "locale": { "type": "string", "enum": ["en", "ru", "ua", "ka"] }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid request",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "BadGateway": {
+        "description": "Upstream/cache worker request failed",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "ServiceUnavailable": {
+        "description": "Required service binding is not configured",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      }
+    }
+  }
+}

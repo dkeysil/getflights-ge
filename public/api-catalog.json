@@ -1,0 +1,79 @@
+{
+  "$schema": "https://getflights.ge/schemas/api-catalog.schema.json",
+  "name": "GetFlights.ge API Catalog",
+  "description": "Directory of public, same-origin web services and agent-readable resources for GetFlights.ge.",
+  "lastUpdated": "2026-08-14",
+  "canonical": "https://getflights.ge/api-catalog.json",
+  "site": "https://getflights.ge/",
+  "documentation": "https://getflights.ge/llms.txt",
+  "auth": "https://getflights.ge/auth.md",
+  "openapi": "https://getflights.ge/openapi.json",
+  "agentResources": [
+    {
+      "name": "LLM site guide",
+      "url": "https://getflights.ge/llms.txt",
+      "mediaType": "text/plain",
+      "purpose": "Entry point for AI assistants and search crawlers."
+    },
+    {
+      "name": "Flight route catalog",
+      "url": "https://getflights.ge/flights.md",
+      "mediaType": "text/markdown",
+      "purpose": "Stable Vanilla Sky route catalog and durable flight-search facts."
+    },
+    {
+      "name": "Booking handoff guide",
+      "url": "https://getflights.ge/booking.md",
+      "mediaType": "text/markdown",
+      "purpose": "Explains the GetFlights.ge to official Vanilla Sky booking handoff."
+    },
+    {
+      "name": "Authentication guide",
+      "url": "https://getflights.ge/auth.md",
+      "mediaType": "text/markdown",
+      "purpose": "Login and token guidance for AI agents."
+    }
+  ],
+  "services": [
+    {
+      "name": "Availability snapshot",
+      "baseUrl": "https://getflights.ge",
+      "openapi": "https://getflights.ge/openapi.json",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/availability",
+          "description": "Returns cached route catalog, available dates, and destination metadata. No authentication required."
+        },
+        {
+          "method": "GET",
+          "path": "/api/flights",
+          "description": "Returns live/cached fare HTML for a known available route/date. Query parameters are documented in openapi.json. No authentication required."
+        }
+      ]
+    },
+    {
+      "name": "Ticket alerts",
+      "baseUrl": "https://getflights.ge",
+      "openapi": "https://getflights.ge/openapi.json",
+      "availability": "Feature-gated; endpoints may return 503 when email/D1 bindings are not enabled.",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/alerts/subscribe",
+          "description": "Create a double-opt-in alert subscription for a route/date range."
+        },
+        {
+          "method": "POST",
+          "path": "/api/alerts/manage-link",
+          "description": "Request a magic-link email for managing alert subscriptions."
+        },
+        {
+          "method": "GET",
+          "path": "/api/alerts/manage",
+          "description": "Read subscriptions scoped to a valid manage token."
+        }
+      ]
+    }
+  ]
+}

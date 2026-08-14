@@ -8,6 +8,7 @@
     "dev:cache-worker": "npx wrangler dev --config workers/vs-cache/wrangler.jsonc --port 8788",
     "build": "node scripts/generate-seo.mjs --public && tsc -b && vite build && node scripts/generate-seo.mjs --dist",
     "check:live-robots": "node scripts/check-live-robots.mjs",
+    "check:agent-diagnostics": "node scripts/check-agent-diagnostics.mjs",
     "generate:social-preview": "node scripts/generate-social-preview.mjs",
     "generate:search-preview": "node scripts/generate-search-preview.mjs",
     "test": "vitest run",
