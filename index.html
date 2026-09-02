@@ -8,7 +8,11 @@
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
 
-      gtag('config', 'G-306ZQXLQH6');
+      // The SPA renders route/locale-specific title, canonical path, and structured
+      // data after mount, so the automatic pageview would report the generic
+      // index.html title/URL. Disable it and let the app fire an explicit
+      // page_view once that state is set (see src/App.tsx + src/lib/analytics.ts).
+      gtag('config', 'G-306ZQXLQH6', { send_page_view: false });
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

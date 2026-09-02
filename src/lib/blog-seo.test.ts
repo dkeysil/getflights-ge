@@ -76,6 +76,16 @@ describe('blog SEO posts', () => {
     expect(text).toContain('Tbilisi International Airport');
   });
 
+  it('answers Russian-language airport-name confusion from Novo-Alexeyevka searches without changing the route CTA', () => {
+    const post = getBlogSeoPostByPath('/ru/blog/natakhtari-airport-guide/');
+    const text = [post?.title, post?.description, post?.h1, post?.intro, ...(post?.sections.flatMap((section) => [section.heading, ...section.body]) ?? [])].join(' ');
+
+    expect(text).toContain('Натахтари');
+    expect(text).toContain('Ново-Алексеевка');
+    expect(text).toContain('Международным аэропортом Тбилиси');
+    expect(post?.cta).toBe('Проверить маршруты из Натахтари');
+  });
+
   it('provides localized blog index pages that link to every article', () => {
     const index = getBlogSeoIndexPageByPath('/ru/blog/');
 

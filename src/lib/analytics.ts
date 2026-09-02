@@ -43,6 +43,24 @@ export function trackHikeWithAxeBannerClicked({ locale }: { locale: Extract<Loca
   });
 }
 
+export type PageViewTrackingInput = {
+  pageLocation: string;
+  pagePath: string;
+  pageTitle: string;
+};
+
+// The GA4 config tag has automatic pageviews disabled (see index.html) because this
+// is a single-page app: the real title, path, and locale aren't known until after
+// mount. Call this once that state is set so the landing page isn't reported as
+// the generic pre-mount document title/URL, which otherwise shows up as "(not set)".
+export function trackPageView({ pageLocation, pagePath, pageTitle }: PageViewTrackingInput) {
+  trackGoogleEvent('page_view', {
+    page_location: pageLocation,
+    page_path: pagePath,
+    page_title: pageTitle,
+  });
+}
+
 function buildBookingHandoffProperties(input: BookingHandoffTrackingInput): AnalyticsProperties {
   const passengerCount = input.passengers.adult + input.passengers.child + input.passengers.infant;
   const properties: AnalyticsProperties = {

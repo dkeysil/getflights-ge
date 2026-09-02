@@ -22,7 +22,7 @@ import {
   routeKey,
   shiftMonth,
 } from './lib/availability';
-import { trackBookingHandoffStarted, trackHikeWithAxeBannerClicked } from './lib/analytics';
+import { trackBookingHandoffStarted, trackHikeWithAxeBannerClicked, trackPageView } from './lib/analytics';
 import {
   loadAvailabilitySnapshot,
   getOfficialPurchaseRequest,
@@ -176,8 +176,14 @@ export function App() {
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.title = blogPost?.title ?? blogIndexPage?.title ?? seoPage?.title ?? copy.metaTitle;
+    const pageTitle = blogPost?.title ?? blogIndexPage?.title ?? seoPage?.title ?? copy.metaTitle;
+    document.title = pageTitle;
     persistLocale(locale);
+    trackPageView({
+      pageLocation: window.location.href,
+      pagePath: window.location.pathname,
+      pageTitle,
+    });
   }, [blogIndexPage?.title, blogPost?.title, copy.metaTitle, locale, seoPage?.title]);
 
   useEffect(() => {
