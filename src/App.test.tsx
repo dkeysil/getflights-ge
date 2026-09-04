@@ -117,6 +117,43 @@ describe('App localization', () => {
     });
   });
 
+  it('fires an explicit page_view with the resolved location, path, and title after mount', async () => {
+    window.history.replaceState(null, '', '/en/flights/mestia-kutaisi/');
+    const gtag = vi.fn();
+    vi.stubGlobal('gtag', gtag);
+
+    render(<App />);
+
+    await screen.findByRole('heading', { name: 'Buy Mestia to Kutaisi flight tickets' });
+
+    expect(gtag).toHaveBeenCalledWith('event', 'page_view', {
+      page_location: window.location.href,
+      page_path: '/en/flights/mestia-kutaisi/',
+      page_title: document.title,
+    });
+  });
+
+  it('fires a fresh page_view for the new locale after switching languages', async () => {
+    window.history.replaceState(null, '', '/en/');
+    const user = userEvent.setup();
+    const gtag = vi.fn();
+    vi.stubGlobal('gtag', gtag);
+
+    render(<App />);
+
+    await screen.findByText('Flying now');
+    gtag.mockClear();
+
+    await user.click(screen.getByRole('button', { name: 'Русский' }));
+
+    await waitFor(() => expect(window.location.pathname).toBe('/ru/'));
+    expect(gtag).toHaveBeenCalledWith(
+      'event',
+      'page_view',
+      expect.objectContaining({ page_path: '/ru/' }),
+    );
+  });
+
   it('renders route SEO copy and selects the matching official route', async () => {
     window.history.replaceState(null, '', '/en/flights/mestia-kutaisi/');
     const user = userEvent.setup();

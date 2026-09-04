@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { trackBookingHandoffStarted, trackHikeWithAxeBannerClicked } from './analytics';
+import { trackBookingHandoffStarted, trackHikeWithAxeBannerClicked, trackPageView } from './analytics';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -88,5 +88,32 @@ describe('Google Analytics tracking', () => {
     });
 
     expect(() => trackHikeWithAxeBannerClicked({ locale: 'ru' })).not.toThrow();
+  });
+
+  it('tracks an explicit page_view with the resolved location, path, and title', () => {
+    const gtag = vi.fn();
+    vi.stubGlobal('gtag', gtag);
+
+    trackPageView({
+      pageLocation: 'https://getflights.ge/en/flights/mestia-kutaisi/',
+      pagePath: '/en/flights/mestia-kutaisi/',
+      pageTitle: 'Buy Mestia to Kutaisi flight tickets',
+    });
+
+    expect(gtag).toHaveBeenCalledWith('event', 'page_view', {
+      page_location: 'https://getflights.ge/en/flights/mestia-kutaisi/',
+      page_path: '/en/flights/mestia-kutaisi/',
+      page_title: 'Buy Mestia to Kutaisi flight tickets',
+    });
+  });
+
+  it('does not throw when the page_view Google tag is unavailable', () => {
+    expect(() =>
+      trackPageView({
+        pageLocation: 'https://getflights.ge/en/',
+        pagePath: '/en/',
+        pageTitle: 'GetFlights.ge',
+      }),
+    ).not.toThrow();
   });
 });

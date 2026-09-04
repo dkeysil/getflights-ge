@@ -118,13 +118,14 @@ describe('social preview metadata', () => {
       'head script[async][src="https://www.googletagmanager.com/gtag/js?id=G-306ZQXLQH6"]',
     );
     const inlineScript = Array.from(document.querySelectorAll('head script')).find((script) =>
-      script.textContent.includes("gtag('config', 'G-306ZQXLQH6')"),
+      script.textContent.includes("gtag('config', 'G-306ZQXLQH6'"),
     );
 
     expect(googleTagScript).toBeTruthy();
     expect(inlineScript?.textContent).toContain('window.dataLayer = window.dataLayer || []');
     expect(inlineScript?.textContent).toContain('function gtag(){dataLayer.push(arguments);}');
     expect(inlineScript?.textContent).toContain("gtag('js', new Date());");
+    expect(inlineScript?.textContent).toContain('send_page_view: false');
   });
 
   it('publishes HTTPS-only headers for crawlers and browsers', () => {
