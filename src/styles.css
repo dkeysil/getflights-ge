@@ -1219,8 +1219,7 @@ button:disabled {
 }
 
 .alert-head {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) auto;
+  display: flex;
   align-items: flex-start;
   gap: 10px;
 }
@@ -1317,38 +1316,29 @@ button:disabled {
 }
 
 .alert-config form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* The setup is intentionally compact on desktop: dates and reassurance stay in
-   one readable column while the Telegram handoff remains visible at the point
-   of choice instead of being stranded below a tall text block. */
 .alert-dates {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(126px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
   gap: 10px 14px;
-  grid-column: 1;
   margin: 0;
   padding: 0;
   border: 0;
 }
 
 .alert-dates legend {
-  grid-column: 1 / -1;
   padding: 0;
-  margin-bottom: -2px;
+  margin-bottom: 8px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--faint);
-}
-
-.alert-presets {
-  grid-column: 1 / -1;
 }
 
 .alert-field {
@@ -1394,7 +1384,6 @@ button:disabled {
 }
 
 .alert-available {
-  grid-column: 1;
   margin: 0;
   font-size: 12.5px;
   font-weight: 600;
@@ -1402,20 +1391,15 @@ button:disabled {
 }
 
 .alert-notes {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-column: 1;
-  gap: 5px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
   margin: 0;
   padding: 0;
   list-style: none;
   font-size: 12.5px;
   line-height: 1.45;
   color: var(--muted);
-}
-
-.alert-notes li:nth-child(3) {
-  grid-column: 1 / -1;
 }
 
 .alert-notes li {
@@ -1435,7 +1419,6 @@ button:disabled {
 }
 
 .notice.alert-link {
-  grid-column: 1 / -1;
   flex-direction: column;
   gap: 2px;
   border: 1px solid rgba(14, 124, 123, 0.24);
@@ -1458,12 +1441,10 @@ button:disabled {
    away from the red booking button. */
 .alert-submit {
   display: inline-flex;
-  grid-column: 2;
-  grid-row: 1 / span 3;
-  align-self: center;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  align-self: flex-start;
   padding: 10px 16px;
   border: 1px solid rgba(14, 124, 123, 0.34);
   border-radius: 10px;
@@ -1783,25 +1764,19 @@ button:disabled {
   }
 
   .alert-head {
-    grid-template-columns: 28px minmax(0, 1fr);
+    flex-wrap: wrap;
+  }
+
+  /* Content-sized copy would wrap under the icon; shrink it so only the toggle
+     drops to its own line. */
+  .alert-intro {
+    flex: 1 1 0;
   }
 
   .alert-toggle {
-    grid-column: 1 / -1;
+    flex: 1 0 100%;
     min-height: 44px;
     justify-content: center;
-  }
-
-  .alert-config form {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .alert-dates {
-    display: flex;
-    flex-wrap: wrap;
   }
 
   .alert-field {
@@ -1810,11 +1785,6 @@ button:disabled {
 
   .alert-field input {
     min-height: 44px;
-  }
-
-  .alert-notes {
-    display: flex;
-    flex-direction: column;
   }
 
   .alert-chip {
