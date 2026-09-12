@@ -1199,6 +1199,285 @@ button:disabled {
   font-size: 13.5px;
 }
 
+/* ---------- telegram alert panel ---------- */
+/* Under a bookable result the panel is a quiet aside; on a dead-end day it is
+   the only thing left to do, so `recovery` promotes it to the loud element. */
+.alert-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--ground-2);
+}
+
+.alert-panel.recovery {
+  border-color: rgba(14, 124, 123, 0.3);
+  background: var(--sky-tint);
+}
+
+.alert-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.alert-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.alert-panel.recovery .alert-ic {
+  border-color: rgba(14, 124, 123, 0.24);
+  color: var(--sky-ink);
+}
+
+.alert-intro {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.alert-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+
+.alert-panel.recovery .alert-title {
+  font-size: 15.5px;
+}
+
+.alert-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.alert-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 2px 0 0;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--faint);
+}
+
+.alert-route {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.alert-route .city {
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.alert-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--paper);
+  color: var(--sky-ink);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: border-color 150ms var(--ease), background 150ms var(--ease);
+}
+
+.alert-toggle .alert-chev {
+  transition: transform 160ms var(--ease);
+}
+
+.alert-toggle[aria-expanded='true'] .alert-chev {
+  transform: rotate(180deg);
+}
+
+.alert-config form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alert-dates {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.alert-dates legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.alert-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.alert-field > span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.alert-field input {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+}
+
+.alert-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.alert-chip {
+  padding: 7px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: border-color 150ms var(--ease), color 150ms var(--ease);
+}
+
+.alert-available {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sky-ink);
+}
+
+.alert-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.alert-notes li {
+  padding-left: 14px;
+  position: relative;
+}
+
+.alert-notes li::before {
+  content: '';
+  position: absolute;
+  top: 7px;
+  left: 2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+
+.notice.alert-link {
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid rgba(14, 124, 123, 0.24);
+  background: var(--paper);
+}
+
+.notice.alert-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sky-ink);
+}
+
+.notice.alert-link .sub {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* Secondary by default: a traveller who can already book should not be pulled
+   away from the red booking button. */
+.alert-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 10px 16px;
+  border: 1px solid rgba(14, 124, 123, 0.34);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--sky-ink);
+  font-size: 13.5px;
+  font-weight: 700;
+  transition: background 150ms var(--ease), transform 130ms var(--ease);
+}
+
+.alert-panel.recovery .alert-submit {
+  border-color: transparent;
+  background: var(--sky);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(14, 124, 123, 0.22);
+}
+
+.alert-submit:active {
+  transform: scale(0.98);
+}
+
+.alert-submit:disabled {
+  border-color: var(--line);
+  background: var(--ground);
+  color: var(--faint);
+  box-shadow: none;
+}
+
+.alert-panel.recovery .alert-submit:disabled {
+  background: #c8cfcb;
+  color: var(--paper);
+}
+
 .spin {
   animation: spin 0.9s linear infinite;
 }
@@ -1230,6 +1509,20 @@ button:disabled {
 
 /* ---------- hover (pointer-only) ---------- */
 @media (hover: hover) and (pointer: fine) {
+  .alert-toggle:hover,
+  .alert-chip:hover {
+    border-color: var(--sky);
+    color: var(--sky-ink);
+  }
+
+  .alert-submit:hover:not(:disabled) {
+    background: var(--sky-tint);
+  }
+
+  .alert-panel.recovery .alert-submit:hover:not(:disabled) {
+    background: var(--sky-ink);
+  }
+
   .icon-button:hover,
   .language-option:hover,
   .navbtns button:hover,
@@ -1468,6 +1761,39 @@ button:disabled {
   .book {
     flex: 1 0 100%;
     justify-content: center;
+  }
+
+  .alert-head {
+    flex-wrap: wrap;
+  }
+
+  /* Content-sized copy would wrap under the icon; shrink it so only the toggle
+     drops to its own line. */
+  .alert-intro {
+    flex: 1 1 0;
+  }
+
+  .alert-toggle {
+    flex: 1 0 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .alert-field {
+    flex: 1 0 100%;
+  }
+
+  .alert-field input {
+    min-height: 44px;
+  }
+
+  .alert-chip {
+    min-height: 40px;
+  }
+
+  .alert-submit {
+    min-height: 44px;
+    align-self: stretch;
   }
 }
 

@@ -12,10 +12,10 @@ import {
   Plane,
   Plus,
   RefreshCw,
-  Send,
   X,
 } from 'lucide-react';
 import { HikeWithAxePromotion } from './components/HikeWithAxePromotion';
+import { TelegramAlertPanel, type TelegramAlertMode } from './components/TelegramAlertPanel';
 import {
   buildMonthCalendar,
   CITIES,
@@ -33,6 +33,7 @@ import {
 } from './lib/backend';
 import {
   formatDateCount,
+  formatDateRange,
   formatRelativeAge,
   formatSelectedDate,
   formatShortDate,
@@ -48,7 +49,13 @@ import {
   type Locale,
 } from './lib/i18n';
 import {
-  defaultAlertRange,
+  alertRangeFromDate,
+  hasDatesInRange,
+  isValidAlertRange,
+  monthAlertRange,
+  todayIso,
+} from './lib/alert-range';
+import {
   loadManagedAlerts,
   readAlertsEnabled,
   requestManageLink,
@@ -134,8 +141,16 @@ export function App() {
   const [openingFor, setOpeningFor] = useState<string | null>(null);
   const [flights, setFlights] = useState<FlightOption[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
+  // The day a search actually came back empty for. An unreachable backend and a
+  // search still starting also leave the ticket list empty, but only a settled
+  // empty result means "no seats" — the recovery copy must not claim it sooner.
+  const [emptySearchDate, setEmptySearchDate] = useState<string | null>(null);
   const [alertDateFrom, setAlertDateFrom] = useState(() => initialAlertSelection.dateFrom);
   const [alertDateTo, setAlertDateTo] = useState(() => initialAlertSelection.dateTo);
+  // A range the traveller typed, or one a shared URL carried, outranks the
+  // calendar: only an untouched range keeps following the selected day.
+  const [alertRangePinned, setAlertRangePinned] = useState(() => initialAlertSelection.rangeFromUrl);
+  const [alertSetupOpen, setAlertSetupOpen] = useState(false);
   const [alertSubmitting, setAlertSubmitting] = useState(false);
   const [alertLinkUrl, setAlertLinkUrl] = useState<string | null>(null);
   const [alertError, setAlertError] = useState<string | null>(null);
@@ -210,6 +225,17 @@ export function App() {
     setAlertError(null);
   }, [fromId, toId, alertDateFrom, alertDateTo]);
 
+  // Until the traveller touches the range themselves, the alert watches the day
+  // they are already looking at plus the week after it, so the dates in the
+  // panel never contradict the day highlighted in the calendar.
+  useEffect(() => {
+    if (!selectedDate || alertRangePinned) return;
+
+    const range = alertRangeFromDate(selectedDate);
+    setAlertDateFrom(range.dateFrom);
+    setAlertDateTo(range.dateTo);
+  }, [alertRangePinned, selectedDate]);
+
   useEffect(() => {
     if (!showManagePage || !manageRoute?.token) return;
 
@@ -249,11 +275,21 @@ export function App() {
   const fromCityName = fromCity ? getCityName(fromCity.id, locale, fromCity.name) : undefined;
   const toCityName = toCity ? getCityName(toCity.id, locale, toCity.name) : undefined;
   const showHomepageSeoNavigation = !blogPost && !blogIndexPage && !seoPage;
+  // The recovery state is only honest once the search for the day on screen has
+  // settled and came back empty, or the route has no sellable days at all; until
+  // then the alert stays a quiet invitation.
+  const dayHasNoSeats = selectedDate ? emptySearchDate === selectedDate : !selectedRouteHasDates;
+  const alertMode: TelegramAlertMode =
+    !loading && !searching && flights.length === 0 && dayHasNoSeats ? 'recovery' : 'invite';
+  const alertConfigOpen = alertMode === 'recovery' || alertSetupOpen;
+  const alertRouteLabel = `${fromCityName ?? ''} → ${toCityName ?? ''}`;
+  const alertRangeLabel = formatDateRange(alertDateFrom, alertDateTo, locale);
 
   // Load the real flight(s) for the chosen route + day as soon as a day is selected.
   useEffect(() => {
     if (!selectedDate) {
       setFlights([]);
+      setEmptySearchDate(null);
       return;
     }
 
@@ -261,6 +297,7 @@ export function App() {
     let active = true;
     setSearching(true);
     setSearchError(null);
+    setEmptySearchDate(null);
     setFlights([]); // clear so the per-day loader shows on every date/passenger change
 
     searchFlights(
@@ -271,6 +308,7 @@ export function App() {
         if (!active) return;
         setFlights(result.flights);
         if (result.flights.length === 0) {
+          setEmptySearchDate(selectedDate);
           setSearchError(copy.noFlightsOnDay);
         }
       })
@@ -339,6 +377,22 @@ export function App() {
     const firstDate = dates.outbound[0] ?? null;
     setSelectedDate(firstDate);
     if (firstDate) setMonth(monthFromIso(firstDate));
+  }
+
+  // Any hand-picked range is pinned: from here on the calendar stops rewriting it.
+  function pinAlertRange(dateFrom: string, dateTo: string) {
+    setAlertRangePinned(true);
+    setAlertDateFrom(dateFrom);
+    setAlertDateTo(dateTo);
+  }
+
+  // The week preset is the way back to the default, so it releases the pin
+  // instead of freezing today's answer.
+  function followSelectedDayRange() {
+    const range = alertRangeFromDate(selectedDate ?? todayIso());
+    setAlertRangePinned(false);
+    setAlertDateFrom(range.dateFrom);
+    setAlertDateTo(range.dateTo);
   }
 
   async function subscribeForAlert(event: FormEvent<HTMLFormElement>) {
@@ -865,60 +919,6 @@ export function App() {
               </div>
             ) : null}
 
-            {alertsEnabled ? (
-              <section className="notice" aria-labelledby="alerts-heading">
-                <div className="dd-head">
-                  <h2 id="alerts-heading">{copy.alertsHeading}</h2>
-                  <p>{alertRangeHasTickets ? copy.alertsAlreadyAvailable : copy.alertsIntro}</p>
-                </div>
-                <form onSubmit={(event) => void subscribeForAlert(event)}>
-                  <div className="passengers">
-                    <label className="pax-stepper">
-                      <span>{copy.alertsDateFromLabel}</span>
-                      <input type="date" value={alertDateFrom} onChange={(event) => setAlertDateFrom(event.target.value)} />
-                    </label>
-                    <label className="pax-stepper">
-                      <span>{copy.alertsDateToLabel}</span>
-                      <input type="date" value={alertDateTo} onChange={(event) => setAlertDateTo(event.target.value)} />
-                    </label>
-                    <div className="pax-stepper">
-                      <span>{copy.alertsMonthShortcutLabel}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const currentMonthRange = monthRange(month.year, month.monthIndex);
-                          setAlertDateFrom(currentMonthRange.dateFrom);
-                          setAlertDateTo(currentMonthRange.dateTo);
-                          setAlertLinkUrl(null);
-                          setAlertError(null);
-                        }}
-                      >
-                        {copy.alertsMonthShortcut}
-                      </button>
-                    </div>
-                  </div>
-                  {alertError ? (
-                    <div className="notice error" role="alert">
-                      <AlertCircle size={18} />
-                      {alertError}
-                    </div>
-                  ) : null}
-                  {alertLinkUrl ? (
-                    <div className="notice" role="status" aria-live="polite">
-                      <a href={alertLinkUrl} target="_blank" rel="noopener noreferrer">
-                        {copy.alertsTelegramOpenManually}
-                      </a>
-                      <span className="sub">{copy.alertsTelegramHint}</span>
-                    </div>
-                  ) : null}
-                  <button className="book" type="submit" disabled={alertSubmitting || !alertRouteValid}>
-                    {alertSubmitting ? <Loader2 className="spin" size={16} /> : <Send size={16} />}
-                    {alertSubmitting ? copy.alertsTelegramOpening : copy.alertsTelegramCta}
-                  </button>
-                </form>
-              </section>
-            ) : null}
-
             {searching && flights.length === 0 ? (
               <div className="loading-row" role="status">
                 <Loader2 className="spin" size={16} />
@@ -973,6 +973,34 @@ export function App() {
                 </div>
               ) : null}
             </div>
+
+            {alertsEnabled && fromCityName && toCityName ? (
+              <TelegramAlertPanel
+                copy={copy}
+                mode={alertMode}
+                fromCityName={fromCityName}
+                toCityName={toCityName}
+                routeLabel={alertRouteLabel}
+                rangeLabel={alertRangeLabel}
+                dateFrom={alertDateFrom}
+                dateTo={alertDateTo}
+                open={alertConfigOpen}
+                onToggle={() => setAlertSetupOpen((open) => !open)}
+                onDateFromChange={(value) => pinAlertRange(value, alertDateTo)}
+                onDateToChange={(value) => pinAlertRange(alertDateFrom, value)}
+                onSelectWeekRange={followSelectedDayRange}
+                onSelectMonthRange={() => {
+                  const range = monthAlertRange(month.year, month.monthIndex);
+                  pinAlertRange(range.dateFrom, range.dateTo);
+                }}
+                rangeHasTickets={alertRangeHasTickets}
+                canSubmit={alertRouteValid}
+                submitting={alertSubmitting}
+                error={alertError}
+                linkUrl={alertLinkUrl}
+                onSubmit={(event) => void subscribeForAlert(event)}
+              />
+            ) : null}
           </section>
         </div>
       </section>
@@ -1322,11 +1350,14 @@ function readInitialAlertSelection(alertsEnabled: boolean): {
   toId: string | null;
   dateFrom: string;
   dateTo: string;
+  rangeFromUrl: boolean;
 } {
-  const fallback = defaultAlertRange(new Date());
+  // Today + a week is only what the very first paint shows: as soon as a day is
+  // selected the range follows the calendar, unless the URL already carried one.
+  const fallback = alertRangeFromDate(todayIso());
 
   if (typeof window === 'undefined' || !alertsEnabled) {
-    return { ...fallback, fromId: null, toId: null };
+    return { ...fallback, fromId: null, toId: null, rangeFromUrl: false };
   }
 
   const params = new URLSearchParams(window.location.search);
@@ -1340,6 +1371,7 @@ function readInitialAlertSelection(alertsEnabled: boolean): {
     toId: params.get('to'),
     dateFrom: hasValidRange && dateFrom ? dateFrom : fallback.dateFrom,
     dateTo: hasValidRange && dateTo ? dateTo : fallback.dateTo,
+    rangeFromUrl: hasValidRange,
   };
 }
 
@@ -1392,21 +1424,9 @@ function hasRoute(snapshot: AvailabilitySnapshot, fromId: string, toId: string) 
   );
 }
 
-function hasDatesInRange(outboundDates: string[], dateFrom: string, dateTo: string) {
-  if (!isValidAlertRange(dateFrom, dateTo)) return false;
-  return outboundDates.some((date) => date >= dateFrom && date <= dateTo);
-}
-
 function monthFromIso(iso: string) {
   const [year, month] = iso.split('-').map(Number);
   return { year, monthIndex: month - 1 };
-}
-
-function monthRange(year: number, monthIndex: number) {
-  return {
-    dateFrom: `${year}-${padMonth(monthIndex + 1)}-01`,
-    dateTo: `${year}-${padMonth(monthIndex + 1)}-${padMonth(new Date(year, monthIndex + 1, 0).getDate())}`,
-  };
 }
 
 function formatManagedRouteLabel(subscription: ManagedSubscription, locale: Locale) {
@@ -1465,16 +1485,8 @@ function formatPrice(raw: string) {
     .trim();
 }
 
-function isValidAlertRange(dateFrom: string | null, dateTo: string | null) {
-  return Boolean(dateFrom && dateTo && /^\d{4}-\d{2}-\d{2}$/.test(dateFrom) && /^\d{4}-\d{2}-\d{2}$/.test(dateTo) && dateFrom <= dateTo);
-}
-
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function padMonth(value: number) {
-  return String(value).padStart(2, '0');
 }
 
 function submitPostForm(action: string, fields: Record<string, string>, target: string) {

@@ -4,6 +4,7 @@ import {
   formatRelativeAge,
   getCityName,
   getOfficialFormLocale,
+  localeOptions,
   messages,
   resolveLocale,
   withLocaleInUrl,
@@ -96,10 +97,39 @@ describe('localization helpers', () => {
   });
 
   it('includes localized alert panel copy in every supported locale', () => {
-    expect(messages.en.alertsHeading).toBe('Notify me about tickets');
+    expect(messages.en.alertsInviteTitle).toBe('Watch this route instead');
     expect(messages.ru.alertsManage).toBe('Управлять уведомлениями');
     expect(messages.ua.alertsMonthShortcut).toBe('Цей місяць');
     expect(messages.ka.alertsCheckEmail).toContain('ელფოსტა');
+  });
+
+  it('names the current route in every alert headline, body and screen-reader label', () => {
+    const route = 'Tbilisi → Batumi';
+
+    for (const locale of localeOptions.map((option) => option.locale)) {
+      const copy = messages[locale];
+      expect(copy.alertsInviteBody(route)).toContain(route);
+      expect(copy.alertsRecoveryBody(route)).toContain(route);
+      expect(copy.alertsNoteTrigger(route)).toContain(route);
+      expect(copy.alertsRouteAria(route)).toContain(route);
+      expect(copy.alertsInviteTitle.length).toBeGreaterThan(0);
+      expect(copy.alertsRecoveryTitle.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('explains the whole alert contract: Telegram confirms, bookable seats trigger, /stop ends it', () => {
+    for (const locale of localeOptions.map((option) => option.locale)) {
+      const copy = messages[locale];
+      expect(copy.alertsNoteConfirm).toContain('Telegram');
+      expect(copy.alertsNoteStop).toContain('/stop');
+    }
+
+    expect(messages.en.alertsNoteTrigger('Tbilisi → Batumi')).toBe(
+      'We message you once Tbilisi → Batumi has bookable seats inside those dates.',
+    );
+    expect(messages.ru.alertsNoteTrigger('Тбилиси → Батуми')).toContain('места для брони');
+    expect(messages.ua.alertsNoteTrigger('Тбілісі → Батумі')).toContain('місця для броні');
+    expect(messages.ka.alertsNoteTrigger('თბილისი → ბათუმი')).toContain('დასაჯავშნი ადგილები');
   });
 
   it('uses scanning wording for Russian and Ukrainian schedule copy', () => {

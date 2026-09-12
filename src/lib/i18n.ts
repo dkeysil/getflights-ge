@@ -59,8 +59,22 @@ export const messages = {
     couldNotReach: 'Could not reach Vanilla Sky. Try refreshing.',
     couldNotLoad: 'Could not load flights.',
     couldNotOpen: 'Could not open Vanilla Sky. Try again.',
-    alertsHeading: 'Notify me about tickets',
-    alertsIntro: 'Pick a date range and our Telegram bot tells you when tickets show up.',
+    alertsInviteTitle: 'Watch this route instead',
+    alertsInviteBody: (route: string) =>
+      `Seats on ${route} sell out and reopen. We can message you in Telegram when new ones appear.`,
+    alertsRecoveryTitle: 'No seats on sale for this day',
+    alertsRecoveryBody: (route: string) =>
+      `Vanilla Sky keeps adding days as schedules firm up. Choose the dates you can travel and we will message you in Telegram as soon as ${route} is bookable.`,
+    alertsRouteAria: (route: string) => `Telegram alerts for ${route}`,
+    alertsWatchingRange: (range: string) => `Watching ${range}`,
+    alertsOpenSetup: 'Set up an alert',
+    alertsCloseSetup: 'Hide alert setup',
+    alertsRangeLegend: 'Dates to watch',
+    alertsRangePresetsLabel: 'Quick ranges',
+    alertsRangeWeek: 'Selected day + 7',
+    alertsNoteConfirm: 'Telegram opens so you can confirm — tap Start there and the alert is on.',
+    alertsNoteTrigger: (route: string) => `We message you once ${route} has bookable seats inside those dates.`,
+    alertsNoteStop: 'Send /stop in Telegram to end alerts any time.',
     alertsTelegramCta: 'Get alerts in Telegram',
     alertsTelegramOpening: 'Opening Telegram...',
     alertsTelegramOpenManually: 'Open Telegram',
@@ -71,9 +85,8 @@ export const messages = {
     alertsManage: 'Manage alerts',
     alertsDateFromLabel: 'From date',
     alertsDateToLabel: 'To date',
-    alertsMonthShortcutLabel: 'Month shortcut',
     alertsMonthShortcut: 'This month',
-    alertsAlreadyAvailable: 'Tickets are already available for this range.',
+    alertsAlreadyAvailable: 'Some of these dates are already on sale — the alert covers the rest.',
     alertsCheckEmail: 'Check your email to confirm this alert.',
     alertsValidationEmail: 'Enter a valid email address.',
     alertsValidationRange: 'Choose a valid date range.',
@@ -139,8 +152,23 @@ export const messages = {
     couldNotReach: 'Не удалось связаться с Vanilla Sky. Попробуйте обновить.',
     couldNotLoad: 'Не удалось загрузить рейсы.',
     couldNotOpen: 'Не удалось открыть Vanilla Sky. Попробуйте еще раз.',
-    alertsHeading: 'Сообщить о билетах',
-    alertsIntro: 'Выберите диапазон дат, и наш Telegram-бот сообщит, когда появятся билеты.',
+    alertsInviteTitle: 'Следить за этим маршрутом',
+    alertsInviteBody: (route: string) =>
+      `Места на маршруте ${route} раскупают и возвращают в продажу. Мы напишем в Telegram, когда появятся новые.`,
+    alertsRecoveryTitle: 'На этот день мест в продаже нет',
+    alertsRecoveryBody: (route: string) =>
+      `Vanilla Sky добавляет дни по мере утверждения расписания. Выберите даты, когда вам удобно лететь, и мы напишем в Telegram, как только ${route} можно будет забронировать.`,
+    alertsRouteAria: (route: string) => `Уведомления в Telegram для маршрута ${route}`,
+    alertsWatchingRange: (range: string) => `Следим за ${range}`,
+    alertsOpenSetup: 'Настроить уведомление',
+    alertsCloseSetup: 'Скрыть настройку',
+    alertsRangeLegend: 'Даты для отслеживания',
+    alertsRangePresetsLabel: 'Быстрые диапазоны',
+    alertsRangeWeek: 'Выбранный день + 7',
+    alertsNoteConfirm: 'Откроется Telegram для подтверждения — нажмите «Start», и уведомление включено.',
+    alertsNoteTrigger: (route: string) =>
+      `Мы напишем, как только на маршруте ${route} появятся места для брони в этих датах.`,
+    alertsNoteStop: 'Команда /stop в Telegram отключит уведомления в любой момент.',
     alertsTelegramCta: 'Уведомления в Telegram',
     alertsTelegramOpening: 'Открываем Telegram...',
     alertsTelegramOpenManually: 'Открыть Telegram',
@@ -151,9 +179,8 @@ export const messages = {
     alertsManage: 'Управлять уведомлениями',
     alertsDateFromLabel: 'Дата от',
     alertsDateToLabel: 'Дата до',
-    alertsMonthShortcutLabel: 'Быстрый месяц',
     alertsMonthShortcut: 'Этот месяц',
-    alertsAlreadyAvailable: 'Билеты на этот диапазон уже доступны.',
+    alertsAlreadyAvailable: 'Часть этих дат уже в продаже — уведомление покроет остальные.',
     alertsCheckEmail: 'Проверьте почту и подтвердите уведомление.',
     alertsValidationEmail: 'Введите корректный email.',
     alertsValidationRange: 'Выберите корректный диапазон дат.',
@@ -219,8 +246,23 @@ export const messages = {
     couldNotReach: 'Не вдалося звʼязатися з Vanilla Sky. Спробуйте оновити.',
     couldNotLoad: 'Не вдалося завантажити рейси.',
     couldNotOpen: 'Не вдалося відкрити Vanilla Sky. Спробуйте ще раз.',
-    alertsHeading: 'Повідомити про квитки',
-    alertsIntro: 'Виберіть діапазон дат, і наш Telegram-бот повідомить, коли зʼявляться квитки.',
+    alertsInviteTitle: 'Стежити за цим маршрутом',
+    alertsInviteBody: (route: string) =>
+      `Місця на маршруті ${route} розкуповують і повертають у продаж. Ми напишемо в Telegram, коли зʼявляться нові.`,
+    alertsRecoveryTitle: 'На цей день місць у продажу немає',
+    alertsRecoveryBody: (route: string) =>
+      `Vanilla Sky додає дні, коли розклад стає остаточним. Виберіть дати, коли вам зручно летіти, і ми напишемо в Telegram, щойно ${route} можна буде забронювати.`,
+    alertsRouteAria: (route: string) => `Сповіщення в Telegram для маршруту ${route}`,
+    alertsWatchingRange: (range: string) => `Стежимо за ${range}`,
+    alertsOpenSetup: 'Налаштувати сповіщення',
+    alertsCloseSetup: 'Сховати налаштування',
+    alertsRangeLegend: 'Дати для стеження',
+    alertsRangePresetsLabel: 'Швидкі діапазони',
+    alertsRangeWeek: 'Вибраний день + 7',
+    alertsNoteConfirm: 'Відкриється Telegram для підтвердження — натисніть «Start», і сповіщення увімкнено.',
+    alertsNoteTrigger: (route: string) =>
+      `Ми напишемо, щойно на маршруті ${route} зʼявляться місця для броні в цих датах.`,
+    alertsNoteStop: 'Команда /stop у Telegram вимкне сповіщення будь-коли.',
     alertsTelegramCta: 'Сповіщення в Telegram',
     alertsTelegramOpening: 'Відкриваємо Telegram...',
     alertsTelegramOpenManually: 'Відкрити Telegram',
@@ -231,9 +273,8 @@ export const messages = {
     alertsManage: 'Керувати сповіщеннями',
     alertsDateFromLabel: 'Дата від',
     alertsDateToLabel: 'Дата до',
-    alertsMonthShortcutLabel: 'Швидкий місяць',
     alertsMonthShortcut: 'Цей місяць',
-    alertsAlreadyAvailable: 'Квитки на цей діапазон уже доступні.',
+    alertsAlreadyAvailable: 'Частина цих дат уже в продажу — сповіщення покриє решту.',
     alertsCheckEmail: 'Перевірте пошту й підтвердьте це сповіщення.',
     alertsValidationEmail: 'Введіть коректний email.',
     alertsValidationRange: 'Виберіть коректний діапазон дат.',
@@ -300,8 +341,23 @@ export const messages = {
     couldNotReach: 'Vanilla Sky-თან დაკავშირება ვერ მოხერხდა. სცადეთ განახლება.',
     couldNotLoad: 'ფრენების ჩატვირთვა ვერ მოხერხდა.',
     couldNotOpen: 'Vanilla Sky-ის გახსნა ვერ მოხერხდა. სცადეთ ხელახლა.',
-    alertsHeading: 'ბილეთებზე შემატყობინე',
-    alertsIntro: 'აირჩიეთ თარიღების დიაპაზონი და ჩვენი Telegram-ბოტი შეგატყობინებთ ბილეთების გამოჩენისას.',
+    alertsInviteTitle: 'თვალი ადევნეთ ამ მარშრუტს',
+    alertsInviteBody: (route: string) =>
+      `მარშრუტზე ${route} ადგილები იყიდება და ისევ ჩნდება. ახლების გამოჩენისას Telegram-ში მოგწერთ.`,
+    alertsRecoveryTitle: 'ამ დღეს ადგილები გაყიდვაში არ არის',
+    alertsRecoveryBody: (route: string) =>
+      `Vanilla Sky ახალ დღეებს ამატებს განრიგის დაზუსტებისას. აირჩიეთ თქვენთვის მოსახერხებელი თარიღები და Telegram-ში მოგწერთ, როგორც კი ${route} დასაჯავშნი გახდება.`,
+    alertsRouteAria: (route: string) => `Telegram-შეტყობინებები მარშრუტისთვის ${route}`,
+    alertsWatchingRange: (range: string) => `ვადევნებთ თვალს: ${range}`,
+    alertsOpenSetup: 'შეტყობინების გამართვა',
+    alertsCloseSetup: 'გამართვის დამალვა',
+    alertsRangeLegend: 'სათვალთვალო თარიღები',
+    alertsRangePresetsLabel: 'სწრაფი დიაპაზონები',
+    alertsRangeWeek: 'არჩეული დღე + 7',
+    alertsNoteConfirm: 'დასადასტურებლად გაიხსნება Telegram — დააჭირეთ «Start» და შეტყობინება ჩართულია.',
+    alertsNoteTrigger: (route: string) =>
+      `მოგწერთ, როგორც კი მარშრუტზე ${route} ამ თარიღებში დასაჯავშნი ადგილები გაჩნდება.`,
+    alertsNoteStop: 'Telegram-ში /stop ნებისმიერ დროს გამორთავს შეტყობინებებს.',
     alertsTelegramCta: 'შეტყობინებები Telegram-ში',
     alertsTelegramOpening: 'იხსნება Telegram...',
     alertsTelegramOpenManually: 'გახსენი Telegram',
@@ -312,9 +368,8 @@ export const messages = {
     alertsManage: 'შეტყობინებების მართვა',
     alertsDateFromLabel: 'თარიღი საიდან',
     alertsDateToLabel: 'თარიღი სადამდე',
-    alertsMonthShortcutLabel: 'თვიური მალსახმობი',
     alertsMonthShortcut: 'ეს თვე',
-    alertsAlreadyAvailable: 'ამ დიაპაზონში ბილეთები უკვე ხელმისაწვდომია.',
+    alertsAlreadyAvailable: 'ამ თარიღების ნაწილი უკვე გაყიდვაშია — შეტყობინება დანარჩენს დაფარავს.',
     alertsCheckEmail: 'შეტყობინების დასადასტურებლად ელფოსტა შეამოწმეთ.',
     alertsValidationEmail: 'შეიყვანეთ სწორი ელფოსტა.',
     alertsValidationRange: 'აირჩიეთ სწორი თარიღების დიაპაზონი.',
@@ -340,6 +395,10 @@ export const messages = {
     language: 'ენა',
   },
 } satisfies Record<Locale, Record<string, unknown>>;
+
+// The copy bundle a component receives once the locale is resolved. Every locale
+// carries the same keys, so this is the union of four identical shapes.
+export type Messages = (typeof messages)[Locale];
 
 const cityNames: Record<Locale, Record<string, string>> = {
   en: {
@@ -478,6 +537,22 @@ export function formatShortDate(iso: string, locale: Locale) {
   return new Intl.DateTimeFormat(toIntlLocale(locale), { weekday: 'short', day: 'numeric', month: 'short' }).format(
     new Date(year, month - 1, day),
   );
+}
+
+// Day + month only: the alert range label is scanned, not read out loud, and the
+// weekday that formatShortDate adds turns a two-date range into a wall of text.
+export function formatCompactDate(iso: string, locale: Locale) {
+  if (!iso) return '';
+  const [year, month, day] = iso.split('-').map(Number);
+  return new Intl.DateTimeFormat(toIntlLocale(locale), { day: 'numeric', month: 'short' }).format(
+    new Date(year, month - 1, day),
+  );
+}
+
+export function formatDateRange(dateFrom: string, dateTo: string, locale: Locale) {
+  if (!dateFrom || !dateTo) return '';
+  if (dateFrom === dateTo) return formatCompactDate(dateFrom, locale);
+  return `${formatCompactDate(dateFrom, locale)} – ${formatCompactDate(dateTo, locale)}`;
 }
 
 export function formatSelectedDate(iso: string, locale: Locale) {

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from './App';
 import {
@@ -39,10 +39,6 @@ vi.mock('./lib/backend', () => ({
 
 vi.mock('./lib/alerts', () => ({
   readAlertsEnabled: vi.fn(() => false),
-  defaultAlertRange: vi.fn(() => ({
-    dateFrom: '2026-08-01',
-    dateTo: '2026-08-31',
-  })),
   subscribeToRouteAlerts: vi.fn(async () => ({ ok: true })),
   requestManageLink: vi.fn(async () => ({ ok: true })),
   loadManagedAlerts: vi.fn(async () => ({ subscriptions: [] })),
@@ -518,7 +514,8 @@ describe('App localization', () => {
 
     await screen.findByText('Flying now');
 
-    expect(screen.queryByRole('heading', { name: 'Notify me about tickets' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'No seats on sale for this day' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Watch this route instead' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Manage alerts' })).not.toBeInTheDocument();
   });
 
@@ -536,23 +533,137 @@ describe('App localization', () => {
       'aria-pressed',
       'true',
     );
-    expect(screen.queryByRole('heading', { name: 'Notify me about tickets' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Watch this route instead' })).not.toBeInTheDocument();
   });
 
-  it('shows a compact notify panel with route range controls when alerts are enabled', async () => {
+  it('renders bookable flights before a collapsed, route-aware alert invite', async () => {
+    vi.mocked(readAlertsEnabled).mockReturnValue(true);
+    vi.mocked(searchFlights).mockResolvedValueOnce({
+      resultUrl: '/en/flights-form',
+      flights: [
+        {
+          checkboxName: 'flight[0]',
+          checkboxValue: '1',
+          fromName: 'Tbilisi',
+          toName: 'Batumi',
+          dateLabel: 'Fri, Jul 31',
+          time: '09:00',
+          priceGel: '90 GEL',
+          priceUsd: null,
+        },
+      ],
+    });
+    window.history.replaceState(null, '', '/en/');
+
+    render(<App />);
+
+    const ticket = await screen.findByRole('button', {
+      name: /Book Tbilisi \(Natakhtari airport\) to Batumi on .* with Vanilla Sky/i,
+    });
+    const panel = screen.getByRole('region', {
+      name: 'Telegram alerts for Tbilisi (Natakhtari airport) → Batumi',
+    });
+
+    // The result the traveller can act on has to come first in the document.
+    expect(ticket.compareDocumentPosition(panel)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(screen.getByRole('heading', { name: 'Watch this route instead' })).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Seats on Tbilisi (Natakhtari airport) → Batumi sell out and reopen. We can message you in Telegram when new ones appear.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Watching Jul 31 – Aug 7')).toBeInTheDocument();
+
+    const toggle = screen.getByRole('button', { name: 'Set up an alert' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByLabelText('From date')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Get alerts in Telegram' })).not.toBeInTheDocument();
+  });
+
+  it('opens the alert configuration on demand and keeps its aria state in sync', async () => {
+    vi.mocked(readAlertsEnabled).mockReturnValue(true);
+    vi.mocked(searchFlights).mockResolvedValueOnce({
+      resultUrl: '/en/flights-form',
+      flights: [
+        {
+          checkboxName: 'flight[0]',
+          checkboxValue: '1',
+          fromName: 'Tbilisi',
+          toName: 'Batumi',
+          dateLabel: 'Fri, Jul 31',
+          time: '09:00',
+          priceGel: '90 GEL',
+          priceUsd: null,
+        },
+      ],
+    });
+    window.history.replaceState(null, '', '/en/');
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await screen.findByRole('button', {
+      name: /Book Tbilisi \(Natakhtari airport\) to Batumi on .* with Vanilla Sky/i,
+    });
+    await user.click(screen.getByRole('button', { name: 'Set up an alert' }));
+
+    const toggle = screen.getByRole('button', { name: 'Hide alert setup' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(toggle).toHaveAttribute('aria-controls', 'telegram-alert-config');
+    expect(screen.getByLabelText('From date')).toHaveValue('2026-07-31');
+    expect(screen.getByLabelText('To date')).toHaveValue('2026-08-07');
+    const presets = screen.getByRole('group', { name: 'Quick ranges' });
+    expect(within(presets).getByRole('button', { name: 'Selected day + 7' })).toBeInTheDocument();
+    expect(within(presets).getByRole('button', { name: 'This month' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Get alerts in Telegram' })).toBeInTheDocument();
+    // v1 alerts are Telegram-only: no email entry points remain.
+    expect(screen.queryByLabelText('Email')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Manage alerts' })).not.toBeInTheDocument();
+
+    await user.click(toggle);
+
+    expect(screen.getByRole('button', { name: 'Set up an alert' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByLabelText('From date')).not.toBeInTheDocument();
+  });
+
+  it('expands the alert configuration as the recovery path when the day has no bookable seats', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
     window.history.replaceState(null, '', '/en/');
 
     render(<App />);
 
-    expect(await screen.findByRole('heading', { name: 'Notify me about tickets' })).toBeInTheDocument();
-    expect(screen.getByLabelText('From date')).toHaveValue('2026-08-01');
-    expect(screen.getByLabelText('To date')).toHaveValue('2026-08-31');
-    expect(screen.getByRole('button', { name: 'This month' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Get alerts in Telegram' })).toBeInTheDocument();
-    // v1 alerts are Telegram-only: no email entry points remain.
-    expect(screen.queryByLabelText('Email')).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Manage alerts' })).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'No seats on sale for this day' })).toBeInTheDocument();
+    expect(
+      screen.getByText(/we will message you in Telegram as soon as Tbilisi \(Natakhtari airport\) → Batumi is bookable/),
+    ).toBeInTheDocument();
+    // No toggle to hunt for: the configuration is the point of this state.
+    expect(screen.queryByRole('button', { name: 'Set up an alert' })).not.toBeInTheDocument();
+    expect(screen.getByLabelText('From date')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Get alerts in Telegram' })).toBeEnabled();
+
+    expect(screen.getByText('Telegram opens so you can confirm — tap Start there and the alert is on.')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'We message you once Tbilisi (Natakhtari airport) → Batumi has bookable seats inside those dates.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Send /stop in Telegram to end alerts any time.')).toBeInTheDocument();
+  });
+
+  it('defaults the watched range to the selected day plus a week and follows later day picks', async () => {
+    vi.mocked(readAlertsEnabled).mockReturnValue(true);
+    window.history.replaceState(null, '', '/en/?from=6&to=5');
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByLabelText('From date')).toHaveValue('2026-07-01'));
+    expect(screen.getByLabelText('To date')).toHaveValue('2026-07-08');
+
+    await user.click(await screen.findByRole('button', { name: /Select route Tbilisi \(Natakhtari airport\) to Batumi/i }));
+
+    await waitFor(() => expect(screen.getByLabelText('From date')).toHaveValue('2026-07-31'));
+    expect(screen.getByLabelText('To date')).toHaveValue('2026-08-07');
   });
 
   it('preselects route and range from query params when alerts are enabled', async () => {
@@ -565,8 +676,37 @@ describe('App localization', () => {
       'aria-pressed',
       'true',
     );
-    expect(screen.getByLabelText('From date')).toHaveValue('2026-07-01');
+    // A range carried by the URL outranks the selected-day default.
+    expect(await screen.findByLabelText('From date')).toHaveValue('2026-07-01');
     expect(screen.getByLabelText('To date')).toHaveValue('2026-07-31');
+  });
+
+  it('keeps a hand-picked range pinned and restores the selected-day default from the preset', async () => {
+    vi.mocked(readAlertsEnabled).mockReturnValue(true);
+    window.history.replaceState(null, '', '/en/');
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.clear(await screen.findByLabelText('To date'));
+    await user.type(screen.getByLabelText('To date'), '2026-09-30');
+
+    await user.click(screen.getByRole('button', { name: /Select route Mestia to Kutaisi/i }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Select route Mestia to Kutaisi/i })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      ),
+    );
+    // The calendar moved to 1 July, but a pinned range is the traveller's to change.
+    expect(screen.getByLabelText('From date')).toHaveValue('2026-07-31');
+    expect(screen.getByLabelText('To date')).toHaveValue('2026-09-30');
+
+    await user.click(screen.getByRole('button', { name: 'Selected day + 7' }));
+
+    expect(screen.getByLabelText('From date')).toHaveValue('2026-07-01');
+    expect(screen.getByLabelText('To date')).toHaveValue('2026-07-08');
   });
 
   it('shows already-available copy and still allows subscribing when the selected range has tickets', async () => {
@@ -575,7 +715,9 @@ describe('App localization', () => {
 
     render(<App />);
 
-    expect(await screen.findByText('Tickets are already available for this range.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Some of these dates are already on sale — the alert covers the rest.'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Get alerts in Telegram' })).toBeEnabled();
   });
 
@@ -727,15 +869,15 @@ describe('App localization', () => {
 
     render(<App />);
 
-    await screen.findByRole('heading', { name: 'Notify me about tickets' });
+    await screen.findByRole('heading', { name: 'No seats on sale for this day' });
     await user.click(screen.getByRole('button', { name: 'Get alerts in Telegram' }));
 
     await waitFor(() =>
       expect(createTelegramAlertLink).toHaveBeenCalledWith({
         fromId: '7',
         toId: '4',
-        dateFrom: '2026-08-01',
-        dateTo: '2026-08-31',
+        dateFrom: '2026-07-31',
+        dateTo: '2026-08-07',
         locale: 'en',
       }),
     );
@@ -756,7 +898,7 @@ describe('App localization', () => {
 
     render(<App />);
 
-    await screen.findByRole('heading', { name: 'Notify me about tickets' });
+    await screen.findByRole('heading', { name: 'No seats on sale for this day' });
     await user.click(screen.getByRole('button', { name: 'Get alerts in Telegram' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not create the Telegram link. Try again.');
@@ -774,11 +916,13 @@ describe('App localization', () => {
           // keep loading pending so invalid query params cannot race into a submit
         }),
     );
-    window.history.replaceState(null, '', '/en/?from=999&to=888&dateFrom=2026-08-01&dateTo=2026-08-31');
+    window.history.replaceState(null, '', '/en/?from=4&to=5&dateFrom=2026-08-01&dateTo=2026-08-31');
+    const user = userEvent.setup();
 
     render(<App />);
 
-    expect(await screen.findByRole('heading', { name: 'Notify me about tickets' })).toBeInTheDocument();
+    await user.click(await screen.findByRole('button', { name: 'Set up an alert' }));
+
     expect(screen.getByRole('button', { name: 'Get alerts in Telegram' })).toBeDisabled();
     expect(createTelegramAlertLink).not.toHaveBeenCalled();
   });
@@ -791,7 +935,7 @@ describe('App localization', () => {
 
     render(<App />);
 
-    await screen.findByRole('heading', { name: 'Notify me about tickets' });
+    await screen.findByRole('heading', { name: 'No seats on sale for this day' });
     await user.click(screen.getByRole('button', { name: 'Get alerts in Telegram' }));
 
     expect(await screen.findByRole('link', { name: 'Open Telegram' })).toBeInTheDocument();
