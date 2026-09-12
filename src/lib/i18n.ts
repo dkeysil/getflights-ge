@@ -63,6 +63,7 @@ export const messages = {
     alertsInviteBody: (route: string) =>
       `Seats on ${route} sell out and reopen. We can message you in Telegram when new ones appear.`,
     alertsRecoveryTitle: 'No seats on sale for this day',
+    alertsRouteRecoveryTitle: 'No scheduled flights for this route',
     alertsRecoveryBody: (route: string) =>
       `Vanilla Sky keeps adding days as schedules firm up. Choose the dates you can travel and we will message you in Telegram as soon as ${route} is bookable.`,
     alertsRouteAria: (route: string) => `Telegram alerts for ${route}`,
@@ -156,6 +157,7 @@ export const messages = {
     alertsInviteBody: (route: string) =>
       `Места на маршруте ${route} раскупают и возвращают в продажу. Мы напишем в Telegram, когда появятся новые.`,
     alertsRecoveryTitle: 'На этот день мест в продаже нет',
+    alertsRouteRecoveryTitle: 'На этом маршруте пока нет рейсов в расписании',
     alertsRecoveryBody: (route: string) =>
       `Vanilla Sky добавляет дни по мере утверждения расписания. Выберите даты, когда вам удобно лететь, и мы напишем в Telegram, как только ${route} можно будет забронировать.`,
     alertsRouteAria: (route: string) => `Уведомления в Telegram для маршрута ${route}`,
@@ -250,6 +252,7 @@ export const messages = {
     alertsInviteBody: (route: string) =>
       `Місця на маршруті ${route} розкуповують і повертають у продаж. Ми напишемо в Telegram, коли зʼявляться нові.`,
     alertsRecoveryTitle: 'На цей день місць у продажу немає',
+    alertsRouteRecoveryTitle: 'Для цього маршруту поки немає рейсів у розкладі',
     alertsRecoveryBody: (route: string) =>
       `Vanilla Sky додає дні, коли розклад стає остаточним. Виберіть дати, коли вам зручно летіти, і ми напишемо в Telegram, щойно ${route} можна буде забронювати.`,
     alertsRouteAria: (route: string) => `Сповіщення в Telegram для маршруту ${route}`,
@@ -345,6 +348,7 @@ export const messages = {
     alertsInviteBody: (route: string) =>
       `მარშრუტზე ${route} ადგილები იყიდება და ისევ ჩნდება. ახლების გამოჩენისას Telegram-ში მოგწერთ.`,
     alertsRecoveryTitle: 'ამ დღეს ადგილები გაყიდვაში არ არის',
+    alertsRouteRecoveryTitle: 'ამ მარშრუტისთვის ჯერ რეისები არ არის განრიგში',
     alertsRecoveryBody: (route: string) =>
       `Vanilla Sky ახალ დღეებს ამატებს განრიგის დაზუსტებისას. აირჩიეთ თქვენთვის მოსახერხებელი თარიღები და Telegram-ში მოგწერთ, როგორც კი ${route} დასაჯავშნი გახდება.`,
     alertsRouteAria: (route: string) => `Telegram-შეტყობინებები მარშრუტისთვის ${route}`,

@@ -14,6 +14,7 @@ type Props = {
   toCityName: string;
   routeLabel: string;
   rangeLabel: string;
+  hasSelectedDate: boolean;
   dateFrom: string;
   dateTo: string;
   open: boolean;
@@ -40,6 +41,7 @@ export function TelegramAlertPanel({
   toCityName,
   routeLabel,
   rangeLabel,
+  hasSelectedDate,
   dateFrom,
   dateTo,
   open,
@@ -68,7 +70,11 @@ export function TelegramAlertPanel({
         </span>
         <div className="alert-intro">
           <h3 className="alert-title" id={titleId}>
-            {recovery ? copy.alertsRecoveryTitle : copy.alertsInviteTitle}
+            {recovery
+              ? hasSelectedDate
+                ? copy.alertsRecoveryTitle
+                : copy.alertsRouteRecoveryTitle
+              : copy.alertsInviteTitle}
           </h3>
           <p className="alert-body">
             {recovery ? copy.alertsRecoveryBody(routeLabel) : copy.alertsInviteBody(routeLabel)}

@@ -982,6 +982,7 @@ export function App() {
                 toCityName={toCityName}
                 routeLabel={alertRouteLabel}
                 rangeLabel={alertRangeLabel}
+                hasSelectedDate={Boolean(selectedDate)}
                 dateFrom={alertDateFrom}
                 dateTo={alertDateTo}
                 open={alertConfigOpen}
