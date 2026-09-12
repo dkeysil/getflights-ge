@@ -1,6 +1,7 @@
 import { availabilityPolicy, flightPolicy } from './policies.js';
 import { CITIES, routeKey } from './availability.js';
 import { handleAlertsRequest } from './alerts-handlers.js';
+import { handleTelegramRequest, telegramLinkPath, telegramWebhookPath } from './telegram-handlers.js';
 import {
   canonicalDataLocale,
   defaultPreloadPassengers,
@@ -106,6 +107,15 @@ export async function handleRequest(request, env, options = {}) {
           cookieHeader: '',
         }),
       );
+    }
+
+    // Telegram routes are matched before the email alert prefix so that
+    // /api/alerts/telegram/link is never swallowed by it.
+    if (url.pathname === telegramLinkPath || url.pathname === telegramWebhookPath) {
+      return handleTelegramRequest(request, env, {
+        now,
+        getAvailabilitySnapshot: () => getAvailabilityCoordinator(env).getAvailability({ force: false }),
+      });
     }
 
     if (url.pathname.startsWith('/api/alerts/')) {

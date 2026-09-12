@@ -12,6 +12,7 @@ import {
   Plane,
   Plus,
   RefreshCw,
+  Send,
   X,
 } from 'lucide-react';
 import { HikeWithAxePromotion } from './components/HikeWithAxePromotion';
@@ -51,9 +52,9 @@ import {
   loadManagedAlerts,
   readAlertsEnabled,
   requestManageLink,
-  subscribeToRouteAlerts,
   unsubscribeManagedAlert,
 } from './lib/alerts';
+import { createTelegramAlertLink } from './lib/telegram-alerts';
 import {
   blogSeoPostsForLocale,
   getBlogSeoIndexPageByPath,
@@ -135,9 +136,8 @@ export function App() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [alertDateFrom, setAlertDateFrom] = useState(() => initialAlertSelection.dateFrom);
   const [alertDateTo, setAlertDateTo] = useState(() => initialAlertSelection.dateTo);
-  const [alertEmail, setAlertEmail] = useState('');
   const [alertSubmitting, setAlertSubmitting] = useState(false);
-  const [alertSubmitted, setAlertSubmitted] = useState(false);
+  const [alertLinkUrl, setAlertLinkUrl] = useState<string | null>(null);
   const [alertError, setAlertError] = useState<string | null>(null);
   const [showAbout, setShowAbout] = useState(
     () => typeof localStorage === 'undefined' || localStorage.getItem('vs-about-dismissed') !== '1',
@@ -206,7 +206,7 @@ export function App() {
   }, [blogIndexPage, blogPost, locale, seoPage]);
 
   useEffect(() => {
-    setAlertSubmitted(false);
+    setAlertLinkUrl(null);
     setAlertError(null);
   }, [fromId, toId, alertDateFrom, alertDateTo]);
 
@@ -344,20 +344,11 @@ export function App() {
   async function subscribeForAlert(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setAlertError(null);
+    setAlertLinkUrl(null);
 
-    if (!snapshot || !hasRoute(snapshot, fromId, toId)) {
-      setAlertSubmitted(false);
-      return;
-    }
-
-    if (!alertEmail.trim() || !isValidEmail(alertEmail)) {
-      setAlertSubmitted(false);
-      setAlertError(copy.alertsValidationEmail);
-      return;
-    }
+    if (!snapshot || !hasRoute(snapshot, fromId, toId)) return;
 
     if (!isValidAlertRange(alertDateFrom, alertDateTo)) {
-      setAlertSubmitted(false);
       setAlertError(copy.alertsValidationRange);
       return;
     }
@@ -365,19 +356,19 @@ export function App() {
     setAlertSubmitting(true);
 
     try {
-      await subscribeToRouteAlerts({
-        email: alertEmail.trim(),
+      const link = await createTelegramAlertLink({
         fromId,
         toId,
         dateFrom: alertDateFrom,
         dateTo: alertDateTo,
         locale,
       });
-      setAlertSubmitted(true);
-      setAlertEmail('');
+      setAlertLinkUrl(link.url);
+      // The await above can cost the click its popup grant, so the link is
+      // also rendered for the user to open manually.
+      window.open(link.url, '_blank', 'noopener,noreferrer');
     } catch {
-      setAlertSubmitted(false);
-      setAlertError(copy.alertsBackendError);
+      setAlertError(copy.alertsTelegramError);
     } finally {
       setAlertSubmitting(false);
     }
@@ -877,11 +868,8 @@ export function App() {
             {alertsEnabled ? (
               <section className="notice" aria-labelledby="alerts-heading">
                 <div className="dd-head">
-                  <div>
-                    <h2 id="alerts-heading">{copy.alertsHeading}</h2>
-                    <p>{alertRangeHasTickets ? copy.alertsAlreadyAvailable : copy.alertsIntro}</p>
-                  </div>
-                  <a href={`/${locale}/alerts/manage/`}>{copy.alertsManage}</a>
+                  <h2 id="alerts-heading">{copy.alertsHeading}</h2>
+                  <p>{alertRangeHasTickets ? copy.alertsAlreadyAvailable : copy.alertsIntro}</p>
                 </div>
                 <form onSubmit={(event) => void subscribeForAlert(event)}>
                   <div className="passengers">
@@ -901,7 +889,7 @@ export function App() {
                           const currentMonthRange = monthRange(month.year, month.monthIndex);
                           setAlertDateFrom(currentMonthRange.dateFrom);
                           setAlertDateTo(currentMonthRange.dateTo);
-                          setAlertSubmitted(false);
+                          setAlertLinkUrl(null);
                           setAlertError(null);
                         }}
                       >
@@ -909,31 +897,23 @@ export function App() {
                       </button>
                     </div>
                   </div>
-                  <label className="pax-stepper">
-                    <span>{copy.alertsEmailLabel}</span>
-                    <input
-                      type="email"
-                      value={alertEmail}
-                      onChange={(event) => {
-                        setAlertEmail(event.target.value);
-                        setAlertSubmitted(false);
-                      }}
-                    />
-                  </label>
                   {alertError ? (
                     <div className="notice error" role="alert">
                       <AlertCircle size={18} />
                       {alertError}
                     </div>
                   ) : null}
-                  {alertSubmitted ? (
-                    <div className="notice" role="alert" aria-live="polite">
-                      {copy.alertsCheckEmail}
+                  {alertLinkUrl ? (
+                    <div className="notice" role="status" aria-live="polite">
+                      <a href={alertLinkUrl} target="_blank" rel="noopener noreferrer">
+                        {copy.alertsTelegramOpenManually}
+                      </a>
+                      <span className="sub">{copy.alertsTelegramHint}</span>
                     </div>
                   ) : null}
                   <button className="book" type="submit" disabled={alertSubmitting || !alertRouteValid}>
-                    {alertSubmitting ? <Loader2 className="spin" size={16} /> : <Info size={16} />}
-                    {copy.alertsSubscribe}
+                    {alertSubmitting ? <Loader2 className="spin" size={16} /> : <Send size={16} />}
+                    {alertSubmitting ? copy.alertsTelegramOpening : copy.alertsTelegramCta}
                   </button>
                 </form>
               </section>

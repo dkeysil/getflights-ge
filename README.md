@@ -10,7 +10,7 @@ GetFlights.ge does not issue tickets or take payment — it makes finding a flya
 
 - **Live schedules and fares** for Vanilla Sky's Georgian domestic routes, with day-by-day availability
 - **Fast search** backed by an edge cache, so date availability loads instantly instead of hammering the airline's backend
-- **Ticket alerts** — subscribe with your email and get notified when seats open up on a route/date (double-opt-in, token-hashed, no accounts)
+- **Ticket alerts** — pick a route and date range, tap through to Telegram, and the bot messages you when seats open up (single-use deep link, no accounts, `/stop` to unsubscribe)
 - **Multilingual** — English, Georgian, Russian, and Hebrew, with localized SEO pages per route
 - **Agent-readable** — [llms.txt](https://getflights.ge/llms.txt), Markdown mirrors of key pages, and structured data so AI assistants can answer flight questions accurately
 
@@ -20,9 +20,9 @@ The app runs entirely on Cloudflare:
 
 | Piece | What it does |
 |---|---|
-| `src/` | React 19 + Vite single-page app (search UI, alerts management, i18n) |
+| `src/` | React 19 + Vite single-page app (search UI, Telegram alert CTA, i18n) |
 | `functions/` | Cloudflare Pages Functions — API routes and a same-origin proxy to the Vanilla Sky backend |
-| `workers/vs-cache/` | Standalone Worker that caches flight bundles in KV, coordinates refreshes through a Durable Object, runs cron-driven preloads every 10 minutes, and powers ticket alerts (D1 + email) |
+| `workers/vs-cache/` | Standalone Worker that caches flight bundles in KV, coordinates refreshes through a Durable Object, runs cron-driven preloads every 10 minutes, and powers Telegram ticket alerts (D1 + Bot API) |
 | `scripts/` | Build-time SEO generation (route pages, sitemap, social previews) |
 | `docs/` | Design specs and implementation plans |
 

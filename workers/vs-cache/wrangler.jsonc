@@ -9,8 +9,21 @@
   },
   "vars": {
     "PRELOAD_OFFICIAL_LOCALES": "en",
-    "PRELOAD_CONCURRENCY": "4"
+    "PRELOAD_CONCURRENCY": "4",
+    "PUBLIC_APP_ORIGIN": "https://getflights.ge",
+    "TELEGRAM_BOT_USERNAME": "get_flights_ge_bot"
   },
+  // Telegram alerts use this D1 binding plus two Worker secrets set with
+  // `wrangler secret put` (never committed, never in vars):
+  //   TELEGRAM_BOT_TOKEN      - Bot API token from @BotFather
+  //   TELEGRAM_WEBHOOK_SECRET - the same value passed as setWebhook secret_token
+  "d1_databases": [
+    {
+      "binding": "ALERTS_DB",
+      "database_name": "getflights-alerts",
+      "database_id": "f9dbc270-554d-4ea6-997c-c4373fef0eb1"
+    }
+  ],
   "triggers": {
     "crons": ["*/10 * * * *"]
   },

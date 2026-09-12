@@ -21,30 +21,37 @@ export function defaultAlertRange(now = new Date()) {
   };
 }
 
-export function normalizeAlertSubscriptionInput(value) {
+// Route, range and locale validation shared by every alert channel.
+export function normalizeAlertRouteInput(value) {
   if (!value || typeof value !== 'object') return null;
 
-  const email = normalizeEmail(value.email);
   const fromId = normalizeId(value.fromId);
   const toId = normalizeId(value.toId);
   const dateFrom = normalizeIsoDate(value.dateFrom);
   const dateTo = normalizeIsoDate(value.dateTo);
   const locale = typeof value.locale === 'string' ? value.locale.trim().toLowerCase() : '';
 
-  if (!email || !fromId || !toId || !dateFrom || !dateTo) return null;
+  if (!fromId || !toId || !dateFrom || !dateTo) return null;
   if (!supportedLocales.has(locale)) return null;
   if (!knownCityIds.has(fromId) || !knownCityIds.has(toId) || fromId === toId) return null;
   if (dateFrom > dateTo) return null;
   if (dateRangeDays(dateFrom, dateTo) > maxRangeDays) return null;
 
   return {
-    email,
     fromId,
     toId,
     dateFrom,
     dateTo,
     locale,
   };
+}
+
+export function normalizeAlertSubscriptionInput(value) {
+  const route = normalizeAlertRouteInput(value);
+  const email = normalizeEmail(value?.email);
+  if (!route || !email) return null;
+
+  return { email, ...route };
 }
 
 export function findMatchingDates({ availability, fromId, toId, dateFrom, dateTo }) {

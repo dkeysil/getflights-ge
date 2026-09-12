@@ -10,6 +10,7 @@ import {
   subscribeToRouteAlerts,
   unsubscribeManagedAlert,
 } from './lib/alerts';
+import { createTelegramAlertLink } from './lib/telegram-alerts';
 import { getOfficialPurchaseRequest, loadAvailabilitySnapshot, searchFlights } from './lib/backend';
 import { LOCALE_STORAGE_KEY } from './lib/i18n';
 
@@ -47,6 +48,15 @@ vi.mock('./lib/alerts', () => ({
   loadManagedAlerts: vi.fn(async () => ({ subscriptions: [] })),
   unsubscribeManagedAlert: vi.fn(async () => ({ ok: true })),
   buildAlertReturnUrl: vi.fn(() => '/en/?from=7&to=4&dateFrom=2026-08-01&dateTo=2026-08-31'),
+}));
+
+vi.mock('./lib/telegram-alerts', () => ({
+  createTelegramAlertLink: vi.fn(async () => ({
+    url: 'https://t.me/get_flights_ge_bot?start=token-1',
+    expiresAt: '2026-08-01T10:15:00.000Z',
+    matchingDates: [],
+  })),
+  isTelegramDeepLink: vi.fn(() => true),
 }));
 
 beforeEach(() => {
@@ -536,11 +546,13 @@ describe('App localization', () => {
     render(<App />);
 
     expect(await screen.findByRole('heading', { name: 'Notify me about tickets' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByLabelText('From date')).toHaveValue('2026-08-01');
     expect(screen.getByLabelText('To date')).toHaveValue('2026-08-31');
     expect(screen.getByRole('button', { name: 'This month' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Manage alerts' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Get alerts in Telegram' })).toBeInTheDocument();
+    // v1 alerts are Telegram-only: no email entry points remain.
+    expect(screen.queryByLabelText('Email')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Manage alerts' })).not.toBeInTheDocument();
   });
 
   it('preselects route and range from query params when alerts are enabled', async () => {
@@ -564,7 +576,7 @@ describe('App localization', () => {
     render(<App />);
 
     expect(await screen.findByText('Tickets are already available for this range.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Notify me' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Get alerts in Telegram' })).toBeEnabled();
   });
 
   it('falls back to the normal app for manage URLs when the frontend alert flag is off', async () => {
@@ -706,21 +718,20 @@ describe('App localization', () => {
     expect(emptyState).toHaveAttribute('role', 'status');
   });
 
-  it('shows the check-email state after a successful subscription', async () => {
+  it('opens the Telegram deep link for the selected route and range', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
-    vi.mocked(subscribeToRouteAlerts).mockResolvedValueOnce({ ok: true });
+    vi.mocked(createTelegramAlertLink).mockClear();
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
     window.history.replaceState(null, '', '/en/');
     const user = userEvent.setup();
 
     render(<App />);
 
     await screen.findByRole('heading', { name: 'Notify me about tickets' });
-    await user.type(screen.getByLabelText('Email'), 'a@example.com');
-    await user.click(screen.getByRole('button', { name: 'Notify me' }));
+    await user.click(screen.getByRole('button', { name: 'Get alerts in Telegram' }));
 
     await waitFor(() =>
-      expect(subscribeToRouteAlerts).toHaveBeenCalledWith({
-        email: 'a@example.com',
+      expect(createTelegramAlertLink).toHaveBeenCalledWith({
         fromId: '7',
         toId: '4',
         dateFrom: '2026-08-01',
@@ -728,12 +739,35 @@ describe('App localization', () => {
         locale: 'en',
       }),
     );
-    expect(await screen.findByText('Check your email to confirm this alert.')).toBeInTheDocument();
+    expect(openSpy).toHaveBeenCalledWith('https://t.me/get_flights_ge_bot?start=token-1', '_blank', 'noopener,noreferrer');
+    expect(await screen.findByRole('link', { name: 'Open Telegram' })).toHaveAttribute(
+      'href',
+      'https://t.me/get_flights_ge_bot?start=token-1',
+    );
+    openSpy.mockRestore();
   });
 
-  it('does not subscribe while the selected alert route is invalid in the loaded snapshot', async () => {
+  it('shows an error and no link when the Telegram link request fails', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
-    vi.mocked(subscribeToRouteAlerts).mockClear();
+    vi.mocked(createTelegramAlertLink).mockRejectedValueOnce(new Error('boom'));
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
+    window.history.replaceState(null, '', '/en/');
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await screen.findByRole('heading', { name: 'Notify me about tickets' });
+    await user.click(screen.getByRole('button', { name: 'Get alerts in Telegram' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not create the Telegram link. Try again.');
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(screen.queryByRole('link', { name: 'Open Telegram' })).not.toBeInTheDocument();
+    openSpy.mockRestore();
+  });
+
+  it('does not request a Telegram link while the selected alert route is invalid in the loaded snapshot', async () => {
+    vi.mocked(readAlertsEnabled).mockReturnValue(true);
+    vi.mocked(createTelegramAlertLink).mockClear();
     vi.mocked(loadAvailabilitySnapshot).mockImplementationOnce(
       () =>
         new Promise(() => {
@@ -741,40 +775,31 @@ describe('App localization', () => {
         }),
     );
     window.history.replaceState(null, '', '/en/?from=999&to=888&dateFrom=2026-08-01&dateTo=2026-08-31');
-    const user = userEvent.setup();
 
     render(<App />);
 
     expect(await screen.findByRole('heading', { name: 'Notify me about tickets' })).toBeInTheDocument();
-
-    const submit = screen.getByRole('button', { name: 'Notify me' });
-    expect(submit).toBeDisabled();
-
-    await user.type(screen.getByLabelText('Email'), 'a@example.com');
-
-    expect(screen.getByRole('button', { name: 'Notify me' })).toBeDisabled();
-    expect(subscribeToRouteAlerts).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Get alerts in Telegram' })).toBeDisabled();
+    expect(createTelegramAlertLink).not.toHaveBeenCalled();
   });
 
-  it('clears the check-email state when the alert range changes after a successful subscription', async () => {
+  it('drops the stale Telegram link when the alert range changes', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
-    vi.mocked(subscribeToRouteAlerts).mockResolvedValueOnce({ ok: true });
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
     window.history.replaceState(null, '', '/en/');
     const user = userEvent.setup();
 
     render(<App />);
 
     await screen.findByRole('heading', { name: 'Notify me about tickets' });
-    await user.type(screen.getByLabelText('Email'), 'a@example.com');
-    await user.click(screen.getByRole('button', { name: 'Notify me' }));
+    await user.click(screen.getByRole('button', { name: 'Get alerts in Telegram' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Check your email to confirm this alert.');
+    expect(await screen.findByRole('link', { name: 'Open Telegram' })).toBeInTheDocument();
 
     await user.clear(screen.getByLabelText('From date'));
     await user.type(screen.getByLabelText('From date'), '2026-08-02');
 
-    await waitFor(() =>
-      expect(screen.queryByText('Check your email to confirm this alert.')).not.toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.queryByRole('link', { name: 'Open Telegram' })).not.toBeInTheDocument());
+    openSpy.mockRestore();
   });
 });

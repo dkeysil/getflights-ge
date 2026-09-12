@@ -49,18 +49,32 @@ VITE_API_PROXY_TARGET=http://127.0.0.1:8788 npm run dev
 
 The Vite dev server proxies `/api/*` to `https://getflights.ge` unless `VITE_API_PROXY_TARGET` is set.
 
-## Dormant Ticket Alerts
+## Ticket Alerts
 
-Alert APIs live in the cache Worker under `/api/alerts/*`. Their D1 schema is in:
+Ticket alerts are Telegram-only. The full design, bindings, secrets and one-time
+setup are in [telegram-alerts.md](./telegram-alerts.md). In short:
 
-```text
-workers/vs-cache/migrations/0001_alert_subscriptions.sql
-```
+- `POST /api/alerts/telegram/link` mints a single-use `t.me` deep link.
+- `POST /api/telegram/webhook` binds or unbinds a chat, authenticated by the
+  `TELEGRAM_WEBHOOK_SECRET` header.
+- The 10-minute cron sends at most one alert per subscription per Tbilisi
+  product day, after the availability refresh.
+- Schema: `workers/vs-cache/migrations/0002_telegram_alert_subscriptions.sql`.
 
-The public React UI is gated only by the frontend build flag:
+The public React CTA is gated by the frontend build flag:
 
 ```bash
 VITE_ALERTS_ENABLED=false npm run build
 ```
 
-Keep that flag false for frontend deploys until the D1 database and email provider are fully configured. The backend has no separate feature flag: alert endpoints and scheduled sends fail closed when `ALERTS_DB` or the `EMAIL` provider binding is missing.
+Keep that flag false for frontend deploys until the D1 database and the Telegram
+secrets are configured. The backend has no separate feature flag: the link
+endpoint returns 503 and scheduled sends do nothing when `ALERTS_DB` or
+`TELEGRAM_BOT_TOKEN` is missing.
+
+### Dormant email alerts
+
+The email alert endpoints under `/api/alerts/*` and migration
+`0001_alert_subscriptions.sql` are an inactive predecessor of the Telegram flow.
+They are unreachable from the UI and stay dormant: they fail closed when
+`ALERTS_DB` or the `EMAIL` provider binding is missing.

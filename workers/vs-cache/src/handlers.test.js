@@ -410,4 +410,37 @@ describe('cache worker request handler', () => {
       error: 'Missing required flight search parameters.',
     });
   });
+
+  it('routes the Telegram link path to the Telegram handler instead of the email alert prefix', async () => {
+    const { env } = createEnv({});
+
+    const response = await handleRequest(
+      new Request('https://cache.example/api/alerts/telegram/link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fromId: '7', toId: '4', dateFrom: '2026-07-01', dateTo: '2026-07-31', locale: 'en' }),
+      }),
+      env,
+    );
+
+    // No D1 or bot token in this env, so the Telegram handler fails closed
+    // with 503 rather than the email handler's "Alerts are unavailable".
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({ error: 'Telegram alerts are unavailable.' });
+  });
+
+  it('routes the Telegram webhook path to the Telegram handler', async () => {
+    const { env } = createEnv({});
+
+    const response = await handleRequest(
+      new Request('https://cache.example/api/telegram/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ update_id: 1 }),
+      }),
+      env,
+    );
+
+    expect(response.status).toBe(401);
+  });
 });

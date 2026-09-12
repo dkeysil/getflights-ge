@@ -17,6 +17,7 @@ import {
 import { fetchFlightSearch } from './flight-search.js';
 import { handleRequest } from './handlers.js';
 import { evaluateTicketAlerts } from './alerts-scheduler.js';
+import { evaluateTelegramAlerts } from './telegram-scheduler.js';
 import { availabilityPolicy, flightPolicy } from './policies.js';
 
 export class RefreshCoordinator extends DurableObject {
@@ -160,6 +161,23 @@ export default {
         JSON.stringify({
           level: 'error',
           message: 'scheduled_alert_evaluation_failed',
+          error: error instanceof Error ? error.message : String(error),
+        }),
+      );
+    }
+
+    try {
+      await evaluateTelegramAlerts({
+        env,
+        snapshot,
+        now: () => scheduledDate,
+        appOrigin: env.PUBLIC_APP_ORIGIN || 'https://getflights.ge',
+      });
+    } catch (error) {
+      console.error(
+        JSON.stringify({
+          level: 'error',
+          message: 'scheduled_telegram_alert_evaluation_failed',
           error: error instanceof Error ? error.message : String(error),
         }),
       );
