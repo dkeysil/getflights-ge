@@ -6,20 +6,45 @@ predecessor: it is left in place, but nothing in the UI reaches it.
 
 ## Flow
 
-1. The search UI collects a route and an inclusive date range — the range is
+The primary binding is the official **Telegram Login Widget**, which is enabled
+on staging only. The `/start <token>` deep link remains in the code as the
+new-chat fallback described below; it is no longer the path a traveller takes.
+
+1. The search UI collects a route and an inclusive date range. The range is
    picked as two clicks on the availability calendar, which opens up sold-out
-   days while the pick is armed — and calls `POST /api/alerts/telegram/link`.
-2. The Worker validates the route against the live availability snapshot,
+   days while the pick is armed. The window is picked **forwards**: the first
+   click fixes the start, and only strictly later days stay selectable, so a
+   one-day window cannot be expressed by clicking the same day twice.
+2. Once the window is complete the panel shows exactly one Telegram action, the
+   sign-in widget, inside the block that shows the window. Nothing else in the
+   panel links to Telegram.
+3. Telegram authenticates the user in its own popup and calls back with a
+   payload it signed with the bot token. Only then does the browser call
+   `POST /api/alerts/telegram/link` for a one-time token — there is no `await`
+   between a click and a `window.open`, so no popup grant to lose.
+4. The Worker validates the route against the live availability snapshot,
    rate-limits the caller, mints a random token, stores only its SHA-256 hash
-   with the route/range/locale payload and a 15-minute expiry, and returns
-   `https://t.me/<bot>?start=<token>`.
-3. The browser opens that deep link. Telegram delivers `/start <token>` to
-   `POST /api/telegram/webhook`.
-4. The webhook verifies the `X-Telegram-Bot-Api-Secret-Token` header, claims the
-   `update_id` so a redelivery cannot act twice, consumes the token in a single
-   atomic `UPDATE ... RETURNING` (single-use), binds the chat, and replies in the
-   subscriber's locale.
-5. Every 10 minutes the existing cron refreshes availability and then runs
+   with the route/range/locale payload and a **5-minute** expiry, and returns
+   both the token and the `https://t.me/<bot>?start=<token>` fallback link.
+5. The browser posts the token plus the signed payload to
+   `POST /api/alerts/telegram/login`. The Worker checks the flag and the origin,
+   verifies the HMAC (`secret_key = SHA256(bot_token)`, `hash =
+   HMAC_SHA256(data_check_string, secret_key)`) and the `auth_date` freshness,
+   and **only then** consumes the token in a single atomic
+   `UPDATE ... RETURNING`. A rejected payload leaves the token unspent and
+   retryable; a spent or expired token answers `410`.
+6. The Worker binds the chat (a Telegram user id is that user's private chat id)
+   and sends the confirmation. Once the binding is committed no send failure is
+   reported as a failed subscription — the token is already spent, so a retry
+   could only fail. Any failing send answers `needsStart: true` with a bare
+   `https://t.me/<bot>` link, the new-chat fallback, which is also the honest
+   answer for the common cause: a bot cannot message a user who has never opened
+   its chat. That link replaces the sign-in action rather than adding to it.
+7. `/start <token>` still works at `POST /api/telegram/webhook`: the webhook
+   verifies the `X-Telegram-Bot-Api-Secret-Token` header, claims the `update_id`
+   so a redelivery cannot act twice, consumes the token the same atomic way,
+   binds the chat and replies in the subscriber's locale.
+8. Every 10 minutes the existing cron refreshes availability and then runs
    `evaluateTelegramAlerts`. A subscription whose range has matching dates is
    sent exactly once per **Tbilisi** product day, with the matching dates and a
    link that restores the route/range search.
@@ -28,7 +53,7 @@ predecessor: it is left in place, but nothing in the UI reaches it.
 
 | Command | Effect |
 |---|---|
-| `/start <token>` | Binds this chat to the route/range carried by the token. The only way a chat is ever bound. |
+| `/start <token>` | Binds this chat to the route/range carried by the token. The new-chat fallback path; the staging widget binds without it. |
 | `/start` (no token) | Help text. Never binds anything. |
 | `/stop` | Unsubscribes every active subscription of this chat. |
 | `/list` | Lists this chat's active subscriptions. |
@@ -48,8 +73,39 @@ All of these live on the cache Worker (`workers/vs-cache/wrangler.jsonc`).
 | `TELEGRAM_WEBHOOK_SECRET` | secret | Shared value that authenticates every webhook request |
 | `TELEGRAM_BOT_USERNAME` | var | Bot username used to build the `t.me` deep link |
 | `PUBLIC_APP_ORIGIN` | var | Origin used in the links inside bot messages |
+| `TELEGRAM_LOGIN_ENABLED` | var | **Staging only.** Exactly `"true"` exposes `/api/alerts/telegram/login`; anything else (including unset) makes it `404` |
+| `TELEGRAM_LOGIN_ALLOWED_ORIGINS` | var | **Staging only.** Comma-separated origins allowed to call that endpoint. An empty or unset list denies every caller |
 
-The frontend CTA is gated by the build flag `VITE_ALERTS_ENABLED=true`.
+The frontend CTA is gated by the build flag `VITE_ALERTS_ENABLED=true`. The
+sign-in widget needs `VITE_TELEGRAM_LOGIN_ENABLED=true` **and**
+`VITE_TELEGRAM_BOT_USERNAME` as well; with either missing the panel renders no
+Telegram action at all, so the deep link can never quietly become the primary
+path. A production build sets none of these three.
+
+### Staging-only login widget
+
+The endpoint and the widget are gated independently, on the Worker and in the
+build, and both default to off:
+
+```bash
+# Worker (staging deployment only — never on the production Worker)
+npx wrangler deploy --config workers/vs-cache/wrangler.jsonc \
+  --var TELEGRAM_LOGIN_ENABLED:true \
+  --var TELEGRAM_LOGIN_ALLOWED_ORIGINS:https://<stage-host>
+
+# Frontend (staging build only)
+VITE_ALERTS_ENABLED=true \
+VITE_TELEGRAM_LOGIN_ENABLED=true \
+VITE_TELEGRAM_BOT_USERNAME=get_flights_ge_bot \
+npm run build
+```
+
+**One manual step remains and cannot be done from this repo:** Telegram only
+renders the widget on a domain the bot owner has registered with @BotFather
+(`/setdomain` → pick the bot → the exact stage host, scheme and host only, no
+path). Until that is done the widget iframe stays blank on staging, even though
+the Worker side is ready. Registering the stage host does not affect the
+production domain, and the existing production bot is authorized for this.
 
 Secrets are never read in browser code and never committed. Set them with:
 
@@ -78,6 +134,9 @@ npx wrangler secret put TELEGRAM_BOT_TOKEN --config workers/vs-cache/wrangler.js
 npx wrangler secret put TELEGRAM_WEBHOOK_SECRET --config workers/vs-cache/wrangler.jsonc
 
 # 3. Deploy the Worker and production frontend. The build flag makes the CTA live.
+#    Production stays feature-off until the owner signs the flow off: until then
+#    this build runs without VITE_ALERTS_ENABLED, and never with the two
+#    VITE_TELEGRAM_LOGIN_* flags.
 npx wrangler deploy --config workers/vs-cache/wrangler.jsonc
 VITE_ALERTS_ENABLED=true npm run build
 npx wrangler pages deploy dist --project-name better-vanillasky --branch main
@@ -98,8 +157,13 @@ Worker ignores anyway.
 - Link creation: 10 per client IP per hour (`429` with `Retry-After`).
 - Webhook updates: 20 per chat per minute; excess updates are acknowledged and
   dropped without a reply, so the bot cannot be used as an amplifier.
-- Link tokens are single-use and expire after 15 minutes; only their hash is
-  stored.
+- Link tokens are single-use and expire after 5 minutes; only their hash is
+  stored. Single use is enforced by the `UPDATE ... RETURNING` itself, so two
+  concurrent claims can never both bind.
+- Login payload verification happens before the token is touched: a forged,
+  edited, stale or future-dated payload is rejected without consuming anything.
+- The login endpoint is rate-limited to 20 attempts per client IP per hour, and
+  is invisible (`404`) unless its environment flag is set.
 - Every `update_id` is claimed once before it is acted on.
 - There is no endpoint that lists or looks up subscriptions: a chat can only
   ever see its own, through `/list` inside Telegram.

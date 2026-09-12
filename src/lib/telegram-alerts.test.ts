@@ -27,7 +27,12 @@ describe('createTelegramAlertLink', () => {
 
   it('posts the route and range and returns the deep link', async () => {
     const fetchMock = stubFetch(
-      Response.json({ url: 'https://t.me/get_flights_ge_bot?start=abc', expiresAt: '2026-08-01T10:15:00.000Z', matchingDates: ['2026-08-03'] }),
+      Response.json({
+        token: 'abc',
+        url: 'https://t.me/get_flights_ge_bot?start=abc',
+        expiresAt: '2026-08-01T10:05:00.000Z',
+        matchingDates: ['2026-08-03'],
+      }),
     );
 
     const link = await createTelegramAlertLink(input);
@@ -35,8 +40,9 @@ describe('createTelegramAlertLink', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/alerts/telegram/link', expect.objectContaining({ method: 'POST' }));
     expect(JSON.parse(fetchMock.mock.calls[0][1]?.body as string)).toEqual(input);
     expect(link).toEqual({
+      token: 'abc',
       url: 'https://t.me/get_flights_ge_bot?start=abc',
-      expiresAt: '2026-08-01T10:15:00.000Z',
+      expiresAt: '2026-08-01T10:05:00.000Z',
       matchingDates: ['2026-08-03'],
     });
   });
@@ -54,8 +60,18 @@ describe('createTelegramAlertLink', () => {
   });
 
   it('tolerates a missing matchingDates field', async () => {
-    stubFetch(Response.json({ url: 'https://t.me/get_flights_ge_bot?start=abc', expiresAt: '2026-08-01T10:15:00.000Z' }));
+    stubFetch(
+      Response.json({ token: 'abc', url: 'https://t.me/get_flights_ge_bot?start=abc', expiresAt: '2026-08-01T10:05:00.000Z' }),
+    );
 
     expect((await createTelegramAlertLink(input)).matchingDates).toEqual([]);
+  });
+
+  // The login binding spends the token, so a response without one is unusable
+  // even though its deep link looks fine.
+  it('refuses a response with no one-time token', async () => {
+    stubFetch(Response.json({ url: 'https://t.me/get_flights_ge_bot?start=abc', expiresAt: '2026-08-01T10:05:00.000Z' }));
+
+    await expect(createTelegramAlertLink(input)).rejects.toThrow();
   });
 });

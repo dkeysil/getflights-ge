@@ -17,6 +17,14 @@
   // `wrangler secret put` (never committed, never in vars):
   //   TELEGRAM_BOT_TOKEN      - Bot API token from @BotFather
   //   TELEGRAM_WEBHOOK_SECRET - the same value passed as setWebhook secret_token
+  //
+  // The Telegram Login Widget binding is staging-only and is deliberately NOT
+  // configured here: with these unset, /api/alerts/telegram/login answers 404.
+  // Set them on the staging Worker only (`wrangler deploy --var ...`, or a
+  // staging-specific config):
+  //   TELEGRAM_LOGIN_ENABLED         - exactly "true" to expose the endpoint
+  //   TELEGRAM_LOGIN_ALLOWED_ORIGINS - comma-separated stage origins allowed to
+  //                                    call it; an empty list denies everyone
   "d1_databases": [
     {
       "binding": "ALERTS_DB",

@@ -112,17 +112,22 @@ describe('localization helpers', () => {
         copy.alertsRangeCancel,
         copy.alertsRangeReset,
         copy.alertsRangeStartHint,
-        copy.alertsRangeEndHint,
         copy.alertsRangeCalendarHint,
+        copy.alertsRangeIncomplete,
       ]) {
         expect(value.length).toBeGreaterThan(0);
       }
+      // The end-step hint names the fixed start, so it is a function now.
+      expect(copy.alertsRangeEndHint('Jul 5')).toContain('Jul 5');
       // The standalone date inputs and presets are gone: nothing may reference them.
       expect(copy).not.toHaveProperty('alertsDateFromLabel');
       expect(copy).not.toHaveProperty('alertsDateToLabel');
       expect(copy).not.toHaveProperty('alertsMonthShortcut');
       expect(copy).not.toHaveProperty('alertsRangeWeek');
       expect(copy).not.toHaveProperty('alertsRangePresetsLabel');
+      // The second Telegram entry point is gone with the deep-link primary path.
+      expect(copy).not.toHaveProperty('alertsTelegramOpenManually');
+      expect(copy).not.toHaveProperty('alertsTelegramHint');
     }
   });
 
@@ -145,6 +150,22 @@ describe('localization helpers', () => {
       const copy = messages[locale];
       expect(copy.alertsNoteConfirm).toContain('Telegram');
       expect(copy.alertsNoteStop).toContain('/stop');
+    }
+
+    // Every state of the single Telegram action is translated too.
+    for (const locale of localeOptions.map((option) => option.locale)) {
+      const copy = messages[locale];
+      for (const value of [
+        copy.alertsTelegramCta,
+        copy.alertsTelegramOpening,
+        copy.alertsTelegramNeedsStart,
+        copy.alertsTelegramOpenBot,
+        copy.alertsTelegramUnavailable,
+        copy.alertsTelegramError,
+      ]) {
+        expect(value.length).toBeGreaterThan(0);
+      }
+      expect(copy.alertsTelegramBound('Jul 5 – Jul 12')).toContain('Jul 5 – Jul 12');
     }
 
     expect(messages.en.alertsNoteTrigger('Tbilisi → Batumi')).toBe(

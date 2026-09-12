@@ -7,6 +7,9 @@ export type TelegramAlertLinkInput = {
 };
 
 export type TelegramAlertLink = {
+  // The one-time alert token. The login widget exchanges it for a binding; the
+  // deep-link URL carries the same token for the new-chat fallback.
+  token: string;
   url: string;
   expiresAt: string;
   matchingDates: string[];
@@ -50,8 +53,12 @@ export async function createTelegramAlertLink(input: TelegramAlertLinkInput): Pr
   if (typeof payload?.url !== 'string' || !isTelegramDeepLink(payload.url)) {
     throw new Error('Unexpected Telegram link response.');
   }
+  if (typeof payload?.token !== 'string' || !payload.token) {
+    throw new Error('Unexpected Telegram link response.');
+  }
 
   return {
+    token: payload.token,
     url: payload.url,
     expiresAt: typeof payload.expiresAt === 'string' ? payload.expiresAt : '',
     matchingDates: Array.isArray(payload.matchingDates) ? payload.matchingDates : [],

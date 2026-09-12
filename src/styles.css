@@ -14,6 +14,18 @@
   --sky: #0e7c7b;
   --sky-ink: #075c5b;
   --sky-tint: #e2f1f0;
+  /* Alerts are deliberately not on the availability hue: green/teal means
+     "seats are on sale", and a watched window is a different claim. Violet is
+     the only accent here that is neither the teal of availability nor the red
+     of the booking day. White on --alert is 7.6:1, --alert-ink on --alert-tint
+     is 9.9:1, both above the teal pair they replace. */
+  --alert: #5b35c6;
+  --alert-ink: #3f2288;
+  --alert-tint: #efe9fd;
+  --alert-line: rgba(91, 53, 198, 0.28);
+  /* One content width for every block in the main column: the alert row, its
+     legend and the calendar grid all measure from the same edges. */
+  --panel-pad-x: 22px;
   --sans: "Helvetica Neue", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --ease: cubic-bezier(0.23, 1, 0.32, 1);
@@ -849,7 +861,7 @@ button:disabled {
 }
 
 .calendar-panel {
-  padding: 18px 22px 22px;
+  padding: 18px var(--panel-pad-x) 22px;
 }
 
 .cal-head {
@@ -978,33 +990,58 @@ button:disabled {
   background: #fff;
 }
 
-/* The watched window has to read at a glance next to the red booking day, so it
-   uses the teal alert accent: a tinted interior with solid caps on the edges. */
+/* The watched window reads against both the teal of availability and the red of
+   the booking day, so it carries the violet alert accent: a tinted interior
+   with solid caps. The underline bar is a second, non-colour cue — availability
+   keeps its dot, the window gets a bar. */
 .day.in-range {
-  background: var(--sky-tint);
-  color: var(--sky-ink);
-  box-shadow: inset 0 0 0 1px rgba(14, 124, 123, 0.25);
+  background: var(--alert-tint);
+  color: var(--alert-ink);
+  box-shadow: inset 0 0 0 1px var(--alert-line);
+}
+
+.day.in-range::before {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--alert);
 }
 
 .day.range-start,
 .day.range-end {
-  background: var(--sky);
-  border-color: var(--sky);
+  background: var(--alert);
+  border-color: var(--alert);
   color: #fff;
-  box-shadow: inset 0 0 0 1px var(--sky);
+  box-shadow: inset 0 0 0 1px var(--alert);
   font-weight: 700;
 }
 
-.day.range-start.range-end {
-  box-shadow: inset 0 0 0 1px var(--sky), 0 6px 16px rgba(14, 124, 123, 0.24);
+.day.range-start::before,
+.day.range-end::before {
+  background: #fff;
+}
+
+/* The half-finished pick: the start is fixed, the window is not a window yet. */
+.day.range-pending {
+  background: var(--alert);
+  border-color: var(--alert);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px var(--alert), 0 6px 16px rgba(91, 53, 198, 0.24);
 }
 
 .day.in-range.avail::after {
-  background: var(--sky-ink);
+  background: var(--alert-ink);
 }
 
 .day.range-start::after,
-.day.range-end::after {
+.day.range-end::after,
+.day.range-pending::after {
   background: #fff;
 }
 
@@ -1020,7 +1057,7 @@ button:disabled {
 }
 
 .day.sel.in-range {
-  box-shadow: 0 8px 20px rgba(200, 16, 46, 0.28), inset 0 0 0 2px rgba(14, 124, 123, 0.55);
+  box-shadow: 0 8px 20px rgba(200, 16, 46, 0.28), inset 0 0 0 2px rgba(91, 53, 198, 0.6);
 }
 
 .day.sel.in-range::after {
@@ -1030,8 +1067,8 @@ button:disabled {
 /* While the calendar is armed the whole month is clickable, so the panel is not
    the only signal that day clicks changed meaning. */
 .calendar-panel.picking-range {
-  border-color: var(--sky);
-  box-shadow: 0 0 0 3px rgba(14, 124, 123, 0.1), var(--shadow);
+  border-color: var(--alert);
+  box-shadow: 0 0 0 3px rgba(91, 53, 198, 0.12), var(--shadow);
 }
 
 .day.skeleton {
@@ -1043,7 +1080,7 @@ button:disabled {
 
 /* ---------- day detail ---------- */
 .day-detail {
-  padding: 18px 22px 22px;
+  padding: 18px var(--panel-pad-x) 22px;
 }
 
 .dd-head {
@@ -1262,15 +1299,17 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px 16px;
+  /* Same horizontal padding as the calendar below it, so the alert row, the
+     legend inside it and the calendar grid all start and end on one line. */
+  padding: 14px var(--panel-pad-x);
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--ground-2);
 }
 
 .alert-panel.recovery {
-  border-color: rgba(14, 124, 123, 0.3);
-  background: var(--sky-tint);
+  border-color: var(--alert-line);
+  background: var(--alert-tint);
 }
 
 .alert-head {
@@ -1293,8 +1332,8 @@ button:disabled {
 }
 
 .alert-panel.recovery .alert-ic {
-  border-color: rgba(14, 124, 123, 0.24);
-  color: var(--sky-ink);
+  border-color: var(--alert-line);
+  color: var(--alert-ink);
 }
 
 .alert-intro {
@@ -1370,7 +1409,7 @@ button:disabled {
   transform: rotate(180deg);
 }
 
-.alert-config form {
+.alert-config {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1388,8 +1427,19 @@ button:disabled {
 }
 
 .alert-range-picker.picking {
-  border-color: var(--sky);
-  box-shadow: 0 0 0 3px rgba(14, 124, 123, 0.12);
+  border-color: var(--alert);
+  box-shadow: 0 0 0 3px rgba(91, 53, 198, 0.12);
+}
+
+/* A finished window is the state the single Telegram action belongs to, so the
+   block that holds both is the one that reads as complete. */
+.alert-range-picker.complete {
+  border-color: var(--alert-line);
+  background: linear-gradient(0deg, var(--alert-tint), var(--alert-tint)), var(--paper);
+}
+
+.alert-range-picker.complete .alert-range-value {
+  color: var(--alert-ink);
 }
 
 .alert-range-current {
@@ -1424,9 +1474,9 @@ button:disabled {
 }
 
 .alert-chip[aria-pressed='true'] {
-  border-color: var(--sky);
-  background: var(--sky-tint);
-  color: var(--sky-ink);
+  border-color: var(--alert);
+  background: var(--alert-tint);
+  color: var(--alert-ink);
 }
 
 .alert-range-hint {
@@ -1485,64 +1535,72 @@ button:disabled {
   background: var(--faint);
 }
 
-.notice.alert-link {
-  flex-direction: column;
-  gap: 2px;
-  border: 1px solid rgba(14, 124, 123, 0.24);
-  background: var(--paper);
+/* The one Telegram action, inside the block that shows the finished window.
+   Nothing else in the panel links to Telegram. */
+.alert-cta {
+  flex: 1 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-width: 0;
 }
 
-.notice.alert-link a {
+.alert-cta-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--alert-ink);
+}
+
+/* Telegram's script replaces this with its own iframe button; the wrapper only
+   has to keep it from pushing the row wider than the panel. */
+.alert-login-mount {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.alert-cta-note {
+  flex: 1 0 100%;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--sky-ink);
-}
-
-.notice.alert-link .sub {
-  font-weight: 500;
+  margin: 0;
+  font-size: 12.5px;
   color: var(--muted);
 }
 
-/* Secondary by default: a traveller who can already book should not be pulled
-   away from the red booking button. */
-.alert-submit {
+.alert-result {
+  flex: 1 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--alert-ink);
+}
+
+.alert-result.done {
+  color: var(--sky-ink);
+}
+
+/* The new-chat fallback: only ever rendered in place of the sign-in widget,
+   never alongside it. */
+.alert-cta-start {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  align-self: flex-start;
-  padding: 10px 16px;
-  border: 1px solid rgba(14, 124, 123, 0.34);
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--alert);
   border-radius: 10px;
   background: var(--paper);
-  color: var(--sky-ink);
-  font-size: 13.5px;
+  color: var(--alert-ink);
+  font-size: 13px;
   font-weight: 700;
-  transition: background 150ms var(--ease), transform 130ms var(--ease);
-}
-
-.alert-panel.recovery .alert-submit {
-  border-color: transparent;
-  background: var(--sky);
-  color: #fff;
-  box-shadow: 0 8px 18px rgba(14, 124, 123, 0.22);
-}
-
-.alert-submit:active {
-  transform: scale(0.98);
-}
-
-.alert-submit:disabled {
-  border-color: var(--line);
-  background: var(--ground);
-  color: var(--faint);
-  box-shadow: none;
-}
-
-.alert-panel.recovery .alert-submit:disabled {
-  background: #c8cfcb;
-  color: var(--paper);
+  text-decoration: none;
 }
 
 .spin {
@@ -1578,16 +1636,12 @@ button:disabled {
 @media (hover: hover) and (pointer: fine) {
   .alert-toggle:hover,
   .alert-chip:hover {
-    border-color: var(--sky);
-    color: var(--sky-ink);
+    border-color: var(--alert);
+    color: var(--alert-ink);
   }
 
-  .alert-submit:hover:not(:disabled) {
-    background: var(--sky-tint);
-  }
-
-  .alert-panel.recovery .alert-submit:hover:not(:disabled) {
-    background: var(--sky-ink);
+  .alert-cta-start:hover {
+    background: var(--alert-tint);
   }
 
   .icon-button:hover,
@@ -1680,9 +1734,13 @@ button:disabled {
   }
 
   /* roomier touch targets */
+  .pane-main {
+    --panel-pad-x: 16px;
+  }
+
   .calendar-panel,
   .day-detail {
-    padding: 16px;
+    padding: 16px var(--panel-pad-x);
   }
 
   .day {
@@ -1730,11 +1788,12 @@ button:disabled {
 
   .pane-main {
     gap: 14px;
+    --panel-pad-x: 18px;
   }
 
   .calendar-panel,
   .day-detail {
-    padding: 14px 18px 18px;
+    padding: 14px var(--panel-pad-x) 18px;
   }
 
   .cal-head {
@@ -1860,9 +1919,9 @@ button:disabled {
     justify-content: center;
   }
 
-  .alert-submit {
+  .alert-cta-start {
     min-height: 44px;
-    align-self: stretch;
+    justify-content: center;
   }
 }
 

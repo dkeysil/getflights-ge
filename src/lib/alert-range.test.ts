@@ -5,6 +5,7 @@ import {
   alertRangeFromDate,
   hasDatesInRange,
   isIsoDate,
+  isSelectableAlertRangeEnd,
   isValidAlertRange,
   monthAlertRange,
   todayIso,
@@ -75,5 +76,28 @@ describe('hasDatesInRange', () => {
     expect(hasDatesInRange(dates, '2026-08-06', '2026-08-20')).toBe(false);
     expect(hasDatesInRange(dates, '2026-08-07', '2026-07-31')).toBe(false);
     expect(hasDatesInRange([], '2026-07-31', '2026-08-07')).toBe(false);
+  });
+});
+
+describe('isSelectableAlertRangeEnd', () => {
+  it('offers every valid day while no start is fixed yet', () => {
+    expect(isSelectableAlertRangeEnd('2026-07-01', null)).toBe(true);
+    expect(isSelectableAlertRangeEnd('2026-07-31', null)).toBe(true);
+  });
+
+  it('offers only days strictly after the fixed start', () => {
+    expect(isSelectableAlertRangeEnd('2026-07-11', '2026-07-10')).toBe(true);
+    expect(isSelectableAlertRangeEnd('2026-08-01', '2026-07-10')).toBe(true);
+  });
+
+  it('refuses the start day itself and anything before it', () => {
+    expect(isSelectableAlertRangeEnd('2026-07-10', '2026-07-10')).toBe(false);
+    expect(isSelectableAlertRangeEnd('2026-07-09', '2026-07-10')).toBe(false);
+    expect(isSelectableAlertRangeEnd('2026-06-30', '2026-07-10')).toBe(false);
+  });
+
+  it('refuses anything that is not an ISO date', () => {
+    expect(isSelectableAlertRangeEnd('not-a-date', '2026-07-10')).toBe(false);
+    expect(isSelectableAlertRangeEnd('', null)).toBe(false);
   });
 });

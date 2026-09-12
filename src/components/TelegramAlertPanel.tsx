@@ -1,6 +1,7 @@
-import { AlertCircle, ArrowRight, BellRing, CalendarRange, ChevronDown, ExternalLink, Loader2, Send } from 'lucide-react';
-import type { FormEvent } from 'react';
+import { AlertCircle, ArrowRight, BellRing, CalendarRange, Check, ChevronDown, ExternalLink, Loader2 } from 'lucide-react';
 import type { Messages } from '../lib/i18n';
+import type { TelegramBindResult, TelegramLoginUser } from '../lib/telegram-login';
+import { TelegramLoginButton } from './TelegramLoginButton';
 
 // `invite` sits under a result the traveller can already book, so it stays a
 // single collapsed line. `recovery` is what a dead-end day gets instead: the
@@ -24,15 +25,18 @@ type Props = {
   calendarId: string;
   rangeSelecting: boolean;
   rangeStep: AlertRangeStep;
+  rangeStartLabel: string;
   onPickRange: () => void;
   onCancelRangePick: () => void;
   onResetRange: () => void;
+  rangeComplete: boolean;
   rangeHasTickets: boolean;
-  canSubmit: boolean;
+  loginEnabled: boolean;
+  botUsername: string | null;
   submitting: boolean;
   error: string | null;
-  linkUrl: string | null;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  result: TelegramBindResult | null;
+  onTelegramAuth: (user: TelegramLoginUser) => void;
 };
 
 const configId = 'telegram-alert-config';
@@ -51,15 +55,18 @@ export function TelegramAlertPanel({
   calendarId,
   rangeSelecting,
   rangeStep,
+  rangeStartLabel,
   onPickRange,
   onCancelRangePick,
   onResetRange,
+  rangeComplete,
   rangeHasTickets,
-  canSubmit,
+  loginEnabled,
+  botUsername,
   submitting,
   error,
-  linkUrl,
-  onSubmit,
+  result,
+  onTelegramAuth,
 }: Props) {
   const recovery = mode === 'recovery';
 
@@ -108,9 +115,17 @@ export function TelegramAlertPanel({
 
       <div className="alert-config" id={configId}>
         {open ? (
-          <form onSubmit={onSubmit}>
+          <>
+            {/* The completed window and the single action that acts on it live
+                in one block: there is no second Telegram entry point below. */}
             <div
-              className={rangeSelecting ? 'alert-range-picker picking' : 'alert-range-picker'}
+              className={[
+                'alert-range-picker',
+                rangeSelecting ? 'picking' : '',
+                rangeComplete && !rangeSelecting ? 'complete' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
               role="group"
               aria-label={copy.alertsRangeLegend}
             >
@@ -141,9 +156,21 @@ export function TelegramAlertPanel({
                 {rangeSelecting
                   ? rangeStep === 'start'
                     ? copy.alertsRangeStartHint
-                    : copy.alertsRangeEndHint
+                    : copy.alertsRangeEndHint(rangeStartLabel)
                   : copy.alertsRangeCalendarHint}
               </p>
+
+              <TelegramAction
+                copy={copy}
+                rangeLabel={rangeLabel}
+                rangeSelecting={rangeSelecting}
+                rangeComplete={rangeComplete}
+                loginEnabled={loginEnabled}
+                botUsername={botUsername}
+                submitting={submitting}
+                result={result}
+                onTelegramAuth={onTelegramAuth}
+              />
             </div>
 
             {rangeHasTickets ? <p className="alert-available">{copy.alertsAlreadyAvailable}</p> : null}
@@ -160,24 +187,74 @@ export function TelegramAlertPanel({
                 {error}
               </div>
             ) : null}
-
-            {linkUrl ? (
-              <div className="notice alert-link" role="status" aria-live="polite">
-                <a href={linkUrl} target="_blank" rel="noopener noreferrer">
-                  {copy.alertsTelegramOpenManually}
-                  <ExternalLink aria-hidden="true" size={14} />
-                </a>
-                <span className="sub">{copy.alertsTelegramHint}</span>
-              </div>
-            ) : null}
-
-            <button className="alert-submit" type="submit" disabled={submitting || !canSubmit}>
-              {submitting ? <Loader2 className="spin" size={16} /> : <Send size={16} />}
-              {submitting ? copy.alertsTelegramOpening : copy.alertsTelegramCta}
-            </button>
-          </form>
+          </>
         ) : null}
       </div>
     </section>
+  );
+}
+
+// Exactly one Telegram action exists at a time: the sign-in widget while the
+// binding is still to be made, and — only if Telegram refused the confirmation
+// message — the new-chat fallback that replaces it.
+function TelegramAction({
+  copy,
+  rangeLabel,
+  rangeSelecting,
+  rangeComplete,
+  loginEnabled,
+  botUsername,
+  submitting,
+  result,
+  onTelegramAuth,
+}: Pick<
+  Props,
+  'copy' | 'rangeLabel' | 'rangeSelecting' | 'rangeComplete' | 'loginEnabled' | 'botUsername' | 'submitting' | 'result' | 'onTelegramAuth'
+>) {
+  if (result) {
+    if (!result.needsStart || !result.startUrl) {
+      return (
+        <p className="alert-result done" role="status">
+          <Check aria-hidden="true" size={15} />
+          {copy.alertsTelegramBound(rangeLabel)}
+        </p>
+      );
+    }
+
+    return (
+      <div className="alert-result needs-start" role="status">
+        <span>{copy.alertsTelegramNeedsStart}</span>
+        <a
+          className="alert-cta alert-cta-start"
+          data-telegram-cta="start-fallback"
+          href={result.startUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {copy.alertsTelegramOpenBot}
+          <ExternalLink aria-hidden="true" size={14} />
+        </a>
+      </div>
+    );
+  }
+
+  if (rangeSelecting || !rangeComplete) {
+    return <p className="alert-cta-note">{copy.alertsRangeIncomplete}</p>;
+  }
+
+  if (!loginEnabled || !botUsername) {
+    return <p className="alert-cta-note">{copy.alertsTelegramUnavailable}</p>;
+  }
+
+  return (
+    <>
+      <TelegramLoginButton botUsername={botUsername} label={copy.alertsTelegramCta} onAuth={onTelegramAuth} />
+      {submitting ? (
+        <p className="alert-cta-note" role="status">
+          <Loader2 className="spin" size={14} />
+          {copy.alertsTelegramOpening}
+        </p>
+      ) : null}
+    </>
   );
 }

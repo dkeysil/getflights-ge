@@ -24,6 +24,13 @@ export function buildTelegramStartUrl({ botUsername, token }) {
   return `${telegramDeepLinkOrigin}/${username}?start=${token}`;
 }
 
+// The fallback the login flow hands back when the bot may not message a user
+// who has never opened its chat: a plain bot link, carrying no token.
+export function buildTelegramChatUrl(botUsername) {
+  const username = normalizeTelegramBotUsername(botUsername);
+  return username ? `${telegramDeepLinkOrigin}/${username}` : null;
+}
+
 export function buildTelegramSearchUrl({ appOrigin, locale, fromId, toId, dateFrom, dateTo }) {
   const url = new URL(`/${locale}/`, appOrigin);
   url.searchParams.set('from', fromId);

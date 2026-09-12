@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { hashAlertToken } from './alerts-domain.js';
 import { handleTelegramRequest } from './telegram-handlers.js';
 import { createFakeDb } from './telegram-store.fake.js';
+import { TelegramApiError } from './telegram-api.js';
+import { buildTelegramLoginDataCheckString } from './telegram-login.js';
 
 const webhookSecret = 'webhook-secret-value';
 const botToken = '1234567890:BOT-TOKEN';
@@ -76,7 +78,8 @@ describe('POST /api/alerts/telegram/link', () => {
 
     expect(response.status).toBe(200);
     expect(body.url.startsWith('https://t.me/get_flights_ge_bot?start=')).toBe(true);
-    expect(body.expiresAt).toBe('2026-08-01T10:15:00.000Z');
+    expect(body.expiresAt).toBe('2026-08-01T10:05:00.000Z');
+    expect(body.token).toBe(token);
     expect(body.matchingDates).toEqual(['2026-08-03', '2026-08-11']);
     expect(env.ALERTS_DB.state.linkTokens).toHaveLength(1);
     expect(env.ALERTS_DB.state.linkTokens[0].token_hash).toBe(await hashAlertToken(token));
@@ -323,5 +326,241 @@ describe('POST /api/telegram/webhook', () => {
     );
 
     expect(response.status).toBe(200);
+  });
+});
+
+const stageOrigin = 'https://feat-telegram-alerts-redesign.better-vanillasky.pages.dev';
+
+function loginEnv(overrides = {}) {
+  return createEnv({
+    TELEGRAM_LOGIN_ENABLED: 'true',
+    TELEGRAM_LOGIN_ALLOWED_ORIGINS: `${stageOrigin}, https://stage.getflights.ge`,
+    ...overrides,
+  });
+}
+
+// Signs the way Telegram signs, so the endpoint is exercised against a real
+// HMAC rather than a stub that always says yes.
+async function signLogin(fields, token = botToken) {
+  const encoder = new TextEncoder();
+  const secret = await crypto.subtle.digest('SHA-256', encoder.encode(token));
+  const key = await crypto.subtle.importKey('raw', secret, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(buildTelegramLoginDataCheckString(fields)));
+  return {
+    ...fields,
+    hash: [...new Uint8Array(signature)].map((byte) => byte.toString(16).padStart(2, '0')).join(''),
+  };
+}
+
+function loginUser(options = {}) {
+  return signLogin({
+    id: String(options.id ?? 555),
+    first_name: 'Nino',
+    auth_date: String(options.authDate ?? Math.floor(new Date('2026-08-01T10:00:00.000Z').getTime() / 1000)),
+  });
+}
+
+// `origin: null` builds a request with no Origin header at all, which is how a
+// non-browser caller reaches the endpoint.
+function loginRequest(body, { origin = stageOrigin } = {}) {
+  const headers = new Headers({ 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' });
+  if (origin) headers.set('Origin', origin);
+
+  return new Request('https://cache.internal/api/alerts/telegram/login', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+}
+
+describe('POST /api/alerts/telegram/login', () => {
+  it('is invisible unless the environment enables it explicitly', async () => {
+    for (const env of [createEnv(), createEnv({ TELEGRAM_LOGIN_ENABLED: 'false' }), createEnv({ TELEGRAM_LOGIN_ENABLED: '1' })]) {
+      const response = await handleTelegramRequest(
+        loginRequest({ token: 'whatever', user: await loginUser() }),
+        env,
+        createOptions(),
+      );
+      expect(response.status).toBe(404);
+    }
+  });
+
+  it('refuses an origin outside the configured stage allow-list', async () => {
+    const env = loginEnv();
+    const options = createOptions();
+    const { token } = await createLink(env, options);
+
+    for (const origin of ['https://getflights.ge', 'https://evil.example', null]) {
+      const response = await handleTelegramRequest(
+        loginRequest({ token, user: await loginUser() }, { origin }),
+        env,
+        options,
+      );
+      expect(response.status).toBe(403);
+    }
+
+    // The rejected attempts left the token alone.
+    expect(env.ALERTS_DB.state.linkTokens[0].consumed_at).toBeNull();
+  });
+
+  it('denies every origin when the allow-list is missing', async () => {
+    const env = loginEnv({ TELEGRAM_LOGIN_ALLOWED_ORIGINS: undefined });
+    const options = createOptions();
+    const { token } = await createLink(env, options);
+
+    const response = await handleTelegramRequest(loginRequest({ token, user: await loginUser() }), env, options);
+
+    expect(response.status).toBe(403);
+  });
+
+  it('binds the Telegram user to the token route and confirms in chat', async () => {
+    const env = loginEnv();
+    const options = createOptions();
+    const { token } = await createLink(env, options);
+
+    const response = await handleTelegramRequest(loginRequest({ token, user: await loginUser() }), env, options);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({ ok: true, needsStart: false });
+    expect(env.ALERTS_DB.state.subscriptions).toMatchObject([
+      { chat_id: '555', from_id: '7', to_id: '4', date_from: '2026-08-01', date_to: '2026-08-31', status: 'active' },
+    ]);
+    expect(options.sendMessage).toHaveBeenCalledWith(expect.objectContaining({ chatId: '555' }));
+    expect(env.ALERTS_DB.state.linkTokens[0].consumed_at).toBe('2026-08-01T10:00:00.000Z');
+  });
+
+  it('rejects a forged signature without consuming the token', async () => {
+    const env = loginEnv();
+    const options = createOptions();
+    const { token } = await createLink(env, options);
+    const forged = { ...(await loginUser()), id: '556' };
+
+    const response = await handleTelegramRequest(loginRequest({ token, user: forged }), env, options);
+
+    expect(response.status).toBe(401);
+    expect(env.ALERTS_DB.state.linkTokens[0].consumed_at).toBeNull();
+    expect(env.ALERTS_DB.state.subscriptions).toEqual([]);
+    expect(options.sendMessage).not.toHaveBeenCalled();
+
+    // The same token still works once the real payload arrives.
+    const retry = await handleTelegramRequest(loginRequest({ token, user: await loginUser() }), env, options);
+    expect(retry.status).toBe(200);
+  });
+
+  it('rejects a payload signed with a different bot token', async () => {
+    const env = loginEnv();
+    const options = createOptions();
+    const { token } = await createLink(env, options);
+    const user = await signLogin(
+      { id: '555', first_name: 'Nino', auth_date: String(Math.floor(Date.parse('2026-08-01T10:00:00.000Z') / 1000)) },
+      '42:SOMEONE-ELSES-TOKEN',
+    );
+
+    const response = await handleTelegramRequest(loginRequest({ token, user }), env, options);
+
+    expect(response.status).toBe(401);
+    expect(env.ALERTS_DB.state.linkTokens[0].consumed_at).toBeNull();
+  });
+
+  it('rejects a correctly signed but stale login payload', async () => {
+    const env = loginEnv();
+    const options = createOptions();
+    const { token } = await createLink(env, options);
+    const stale = await loginUser({ authDate: Math.floor(Date.parse('2026-08-01T09:50:00.000Z') / 1000) });
+
+    const response = await handleTelegramRequest(loginRequest({ token, user: stale }), env, options);
+
+    expect(response.status).toBe(401);
+    expect(env.ALERTS_DB.state.linkTokens[0].consumed_at).toBeNull();
+  });
+
+  it('refuses to replay a token that was already spent', async () => {
+    const env = loginEnv();
+    const options = createOptions();
+    const { token } = await createLink(env, options);
+
+    expect((await handleTelegramRequest(loginRequest({ token, user: await loginUser() }), env, options)).status).toBe(200);
+    const replay = await handleTelegramRequest(loginRequest({ token, user: await loginUser() }), env, options);
+
+    expect(replay.status).toBe(410);
+    expect(env.ALERTS_DB.state.subscriptions).toHaveLength(1);
+  });
+
+  it('refuses a token that outlived its five-minute window', async () => {
+    const env = loginEnv();
+    const { token } = await createLink(env, createOptions());
+    const later = createOptions({ now: () => new Date('2026-08-01T10:05:01.000Z') });
+
+    const response = await handleTelegramRequest(
+      loginRequest({ token, user: await loginUser({ authDate: Math.floor(Date.parse('2026-08-01T10:05:00.000Z') / 1000) }) }),
+      env,
+      later,
+    );
+
+    expect(response.status).toBe(410);
+    expect(env.ALERTS_DB.state.subscriptions).toEqual([]);
+  });
+
+  it('keeps the subscription and asks for a Start when the bot may not message the user yet', async () => {
+    const env = loginEnv();
+    const options = createOptions({
+      sendMessage: vi.fn(async () => {
+        throw new TelegramApiError('Forbidden: bot can\'t initiate conversation with a user', { errorCode: 403 });
+      }),
+    });
+    const { token } = await createLink(env, options);
+
+    const response = await handleTelegramRequest(loginRequest({ token, user: await loginUser() }), env, options);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({ ok: true, needsStart: true, startUrl: 'https://t.me/get_flights_ge_bot' });
+    // The fallback link carries no token: the binding already happened.
+    expect(body.startUrl).not.toContain('start=');
+    expect(env.ALERTS_DB.state.subscriptions).toHaveLength(1);
+  });
+
+  // The token is spent by the time the send runs, so a retry could only fail.
+  // A transient Bot API error must not be reported as a failed subscription.
+  it('never reports a committed binding as failed, whatever the send does', async () => {
+    const env = loginEnv();
+    const options = createOptions({
+      sendMessage: vi.fn(async () => {
+        throw new TelegramApiError('Bad Gateway', { status: 502 });
+      }),
+    });
+    const { token } = await createLink(env, options);
+
+    const response = await handleTelegramRequest(loginRequest({ token, user: await loginUser() }), env, options);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({ ok: true, needsStart: true });
+    expect(env.ALERTS_DB.state.subscriptions).toMatchObject([{ chat_id: '555', status: 'active' }]);
+  });
+
+  it('fails closed when the alert store or bot token is missing', async () => {
+    for (const env of [loginEnv({ ALERTS_DB: undefined }), loginEnv({ TELEGRAM_BOT_TOKEN: undefined })]) {
+      const response = await handleTelegramRequest(
+        loginRequest({ token: 'abc', user: await loginUser() }),
+        env,
+        createOptions(),
+      );
+      expect(response.status).toBe(503);
+    }
+  });
+
+  it('rate limits login attempts per client IP', async () => {
+    const env = loginEnv();
+    const options = createOptions();
+    const user = await loginUser();
+
+    let lastResponse;
+    for (let attempt = 0; attempt < 21; attempt += 1) {
+      lastResponse = await handleTelegramRequest(loginRequest({ token: 'no-such-token', user }), env, options);
+    }
+
+    expect(lastResponse.status).toBe(429);
   });
 });

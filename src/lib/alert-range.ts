@@ -27,6 +27,15 @@ export function addDays(iso: string, days: number) {
   return `${shifted.getUTCFullYear()}-${pad(shifted.getUTCMonth() + 1)}-${pad(shifted.getUTCDate())}`;
 }
 
+// The alert window is picked forwards only: once the start is fixed, the end
+// has to be a strictly later day. A same-day pick would read as a completed
+// range on the calendar while meaning "not finished yet", so it is not offered.
+export function isSelectableAlertRangeEnd(iso: string, start: string | null) {
+  if (!isIsoDate(iso)) return false;
+  if (!isIsoDate(start)) return true;
+  return iso > start;
+}
+
 export function alertRangeFromDate(iso: string, days = ALERT_RANGE_DEFAULT_DAYS): AlertRange {
   return { dateFrom: iso, dateTo: addDays(iso, days) };
 }

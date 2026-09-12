@@ -11,6 +11,7 @@ import {
   unsubscribeManagedAlert,
 } from './lib/alerts';
 import { createTelegramAlertLink } from './lib/telegram-alerts';
+import { bindTelegramLogin, readTelegramLoginConfig } from './lib/telegram-login';
 import { getOfficialPurchaseRequest, loadAvailabilitySnapshot, searchFlights } from './lib/backend';
 import { formatDateRange, formatSelectedDate, LOCALE_STORAGE_KEY } from './lib/i18n';
 
@@ -42,6 +43,14 @@ const rangeEndDayName = (dayOfMonth: number) =>
 
 const soldOutDayName = (dayOfMonth: number) =>
   `Unavailable date ${formatSelectedDate(isoDay(dayOfMonth), 'en')} for Tbilisi (Natakhtari airport) to Batumi`;
+
+// While the end day is awaited, the fixed start and everything before it are
+// out of reach and say so.
+const pendingStartDayName = (dayOfMonth: number) =>
+  `Alert range start ${formatSelectedDate(isoDay(dayOfMonth), 'en')} for Tbilisi (Natakhtari airport) to Batumi. Pick a later day to close the window.`;
+
+const beforeStartDayName = (dayOfMonth: number) =>
+  `Date before the alert range start ${formatSelectedDate(isoDay(dayOfMonth), 'en')} for Tbilisi (Natakhtari airport) to Batumi`;
 
 // One bookable day in the current month so the calendar on screen is the one the
 // alert range is picked from.
@@ -111,14 +120,42 @@ vi.mock('./lib/alerts', () => ({
 
 vi.mock('./lib/telegram-alerts', () => ({
   createTelegramAlertLink: vi.fn(async () => ({
+    token: 'token-1',
     url: 'https://t.me/get_flights_ge_bot?start=token-1',
-    expiresAt: '2026-08-01T10:15:00.000Z',
+    expiresAt: '2026-08-01T10:05:00.000Z',
     matchingDates: [],
   })),
   isTelegramDeepLink: vi.fn(() => true),
 }));
 
+vi.mock('./lib/telegram-login', () => ({
+  readTelegramLoginConfig: vi.fn(() => ({ enabled: true, botUsername: 'get_flights_ge_bot' })),
+  bindTelegramLogin: vi.fn(async () => ({ needsStart: false, startUrl: null })),
+  isTelegramBotLink: vi.fn(() => true),
+}));
+
+// Telegram's widget script never runs in jsdom, so the test plays its part: it
+// calls the global callback the widget element registered, with the payload
+// Telegram would have signed.
+const telegramWidgetUser = { id: '555', first_name: 'Nino', auth_date: '1785312000', hash: 'a'.repeat(64) };
+
+function signInWithTelegram(user = telegramWidgetUser) {
+  const globals = window as unknown as Record<string, unknown>;
+  const callbackName = Object.keys(globals).find((key) => key.startsWith('onTelegramAuth_'));
+  if (!callbackName) throw new Error('The Telegram sign-in widget did not register a callback.');
+  return (globals[callbackName] as (value: unknown) => void)(user);
+}
+
+function telegramCtas() {
+  return document.querySelectorAll('[data-telegram-cta]');
+}
+
 beforeEach(() => {
+  // `vi.restoreAllMocks()` in afterEach clears the factory implementations, so
+  // the Telegram-login defaults are re-established per test.
+  vi.mocked(readTelegramLoginConfig).mockReturnValue({ enabled: true, botUsername: 'get_flights_ge_bot' });
+  vi.mocked(bindTelegramLogin).mockResolvedValue({ needsStart: false, startUrl: null });
+
   const values = new Map<string, string>();
   vi.stubGlobal('localStorage', {
     getItem: (key: string) => values.get(key) ?? null,
@@ -624,7 +661,7 @@ describe('App localization', () => {
     const toggle = screen.getByRole('button', { name: 'Set up an alert' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('button', { name: 'Pick dates in the calendar' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Get alerts in Telegram' })).not.toBeInTheDocument();
+    expect(telegramCtas()).toHaveLength(0);
   });
 
   it('puts the alert entry above the calendar and outside the passenger and purchase zone', async () => {
@@ -695,7 +732,9 @@ describe('App localization', () => {
     expect(screen.queryByLabelText('From date')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('To date')).not.toBeInTheDocument();
     expect(screen.queryByRole('group', { name: 'Quick ranges' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Get alerts in Telegram' })).toBeInTheDocument();
+    // Opening the setup arms the pick, so the action is not offered yet.
+    expect(telegramCtas()).toHaveLength(0);
+    expect(within(rangeGroup).getByText('Pick both dates to turn the alert on.')).toBeInTheDocument();
     // v1 alerts are Telegram-only: no email entry points remain.
     expect(screen.queryByLabelText('Email')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Manage alerts' })).not.toBeInTheDocument();
@@ -726,9 +765,11 @@ describe('App localization', () => {
       'false',
     );
     expect(within(rangeGroup).getByText('These dates come from the calendar below.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Get alerts in Telegram' })).toBeEnabled();
+    // One action, inside the block that shows the completed window.
+    expect(telegramCtas()).toHaveLength(1);
+    expect(rangeGroup.querySelectorAll('[data-telegram-cta]')).toHaveLength(1);
 
-    expect(screen.getByText('Telegram opens so you can confirm — tap Start there and the alert is on.')).toBeInTheDocument();
+    expect(screen.getByText('Telegram asks you to confirm it is you — after that the alert is on.')).toBeInTheDocument();
     expect(
       screen.getByText(
         'We message you once Tbilisi (Natakhtari airport) → Batumi has bookable seats inside those dates.',
@@ -815,11 +856,16 @@ describe('App localization', () => {
     expect(startDay).toBeEnabled();
     await user.click(startDay);
 
-    // The first click already shows as a one-day window and moves on to the end.
-    expect(screen.getByText(`Watching ${formatDateRange(isoDay(5), isoDay(5), 'en')}`)).toBeInTheDocument();
+    // The first click only fixes the start: nothing is committed yet, and the
+    // hint names the day the window now runs from.
     expect(screen.getByRole('status')).toHaveTextContent(
-      'Now tap the last day to watch. The same day again watches a single day.',
+      `Watching from ${formatDateRange(isoDay(5), isoDay(5), 'en')}. Now tap a later day to close the window`,
     );
+    expect(screen.getByRole('button', { name: pendingStartDayName(5) }).className).toContain('range-pending');
+    // Only strictly later days stay selectable — the start day included.
+    expect(screen.getByRole('button', { name: pendingStartDayName(5) })).toBeDisabled();
+    expect(screen.getByRole('button', { name: beforeStartDayName(4) })).toBeDisabled();
+    expect(screen.getByRole('button', { name: rangeEndDayName(6) })).toBeEnabled();
 
     await user.click(screen.getByRole('button', { name: rangeEndDayName(12) }));
 
@@ -841,7 +887,7 @@ describe('App localization', () => {
     expect(screen.getByRole('button', { name: soldOutDayName(20) }).className).not.toContain('in-range');
   });
 
-  it('closes the same inclusive range when the end day is clicked before the start day', async () => {
+  it('refuses to close the window backwards: an earlier day is not selectable', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
     vi.mocked(loadAvailabilitySnapshot).mockResolvedValueOnce(currentMonthSnapshot(10));
     window.history.replaceState(null, '', '/en/');
@@ -852,16 +898,25 @@ describe('App localization', () => {
     await screen.findByRole('heading', { name: 'No seats on sale for this day' });
     await user.click(screen.getByRole('button', { name: 'Pick dates in the calendar' }));
     await user.click(screen.getByRole('button', { name: rangeStartDayName(20) }));
-    await user.click(screen.getByRole('button', { name: rangeEndDayName(6) }));
 
-    expect(
-      screen.getByText(`Watching ${formatDateRange(isoDay(6), isoDay(20), 'en')}`),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: soldOutDayName(6) }).className).toContain('range-start');
-    expect(screen.getByRole('button', { name: soldOutDayName(20) }).className).toContain('range-end');
+    const earlier = screen.getByRole('button', { name: beforeStartDayName(6) });
+    expect(earlier).toBeDisabled();
+    await user.click(earlier);
+
+    // Still waiting for an end day: the pick did not flip direction or finish.
+    expect(screen.getByRole('button', { name: 'Stop picking dates' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: pendingStartDayName(20) }).className).toContain('range-pending');
+    expect(screen.getByRole('button', { name: beforeStartDayName(6) }).className).not.toContain('range-start');
+
+    // A later day still closes it.
+    await user.click(screen.getByRole('button', { name: rangeEndDayName(25) }));
+
+    expect(screen.getByText(`Watching ${formatDateRange(isoDay(20), isoDay(25), 'en')}`)).toBeInTheDocument();
   });
 
-  it('hands the calendar back to booking when the pick is cancelled mid-range', async () => {
+  // Strictly-later is what makes the direction unambiguous, and the cost is that
+  // a one-day window cannot be expressed by clicking the same day twice.
+  it('never completes a single-day window from one day clicked twice', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
     vi.mocked(loadAvailabilitySnapshot).mockResolvedValueOnce(currentMonthSnapshot(10));
     window.history.replaceState(null, '', '/en/');
@@ -872,12 +927,36 @@ describe('App localization', () => {
     await screen.findByRole('heading', { name: 'No seats on sale for this day' });
     await user.click(screen.getByRole('button', { name: 'Pick dates in the calendar' }));
     await user.click(screen.getByRole('button', { name: rangeStartDayName(5) }));
+    await user.click(screen.getByRole('button', { name: pendingStartDayName(5) }));
+
+    expect(
+      screen.queryByText(`Watching ${formatDateRange(isoDay(5), isoDay(5), 'en')}`),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Stop picking dates' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('restores the previous booking selection and window when the pick is cancelled mid-range', async () => {
+    vi.mocked(readAlertsEnabled).mockReturnValue(true);
+    vi.mocked(loadAvailabilitySnapshot).mockResolvedValueOnce(currentMonthSnapshot(10));
+    window.history.replaceState(null, '', '/en/');
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await screen.findByRole('heading', { name: 'No seats on sale for this day' });
+    // The day the traveller had selected to book, before the alert pick starts.
+    expect(screen.getByRole('button', { name: bookableDayName(10) })).toHaveAttribute('aria-pressed', 'true');
+
+    await user.click(screen.getByRole('button', { name: 'Pick dates in the calendar' }));
+    await user.click(screen.getByRole('button', { name: rangeStartDayName(5) }));
     await user.click(screen.getByRole('button', { name: 'Stop picking dates' }));
 
-    // The first tap was only a preview. Cancelling must not turn it into an
-    // unintended pinned one-day alert.
+    // The first tap committed nothing: the previous window is still the window.
     expect(screen.getByText(`Watching ${formatDateRange(isoDay(10), isoDay(17), 'en')}`)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: soldOutDayName(5) }).className).not.toContain('range-pending');
+    // The calendar is back to booking, on the same day it was selecting before.
     expect(screen.getByRole('button', { name: soldOutDayName(20) })).toBeDisabled();
+    expect(screen.getByRole('button', { name: bookableDayName(10) })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('status')).toHaveTextContent('These dates come from the calendar below.');
 
     // Booking behaviour is untouched: the bookable day still selects for purchase.
@@ -886,11 +965,10 @@ describe('App localization', () => {
     expect(screen.getByRole('button', { name: bookableDayName(10) })).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('sends the calendar-picked range to the Telegram deep-link request', async () => {
+  it('sends the calendar-picked range with the token it binds', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
     vi.mocked(createTelegramAlertLink).mockClear();
     vi.mocked(loadAvailabilitySnapshot).mockResolvedValueOnce(currentMonthSnapshot(10));
-    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
     window.history.replaceState(null, '', '/en/');
     const user = userEvent.setup();
 
@@ -900,7 +978,10 @@ describe('App localization', () => {
     await user.click(screen.getByRole('button', { name: 'Pick dates in the calendar' }));
     await user.click(screen.getByRole('button', { name: rangeStartDayName(5) }));
     await user.click(screen.getByRole('button', { name: rangeEndDayName(12) }));
-    await user.click(screen.getByRole('button', { name: 'Get alerts in Telegram' }));
+
+    // The finished window brings the one action with it.
+    expect(telegramCtas()).toHaveLength(1);
+    signInWithTelegram();
 
     await waitFor(() =>
       expect(createTelegramAlertLink).toHaveBeenCalledWith({
@@ -911,7 +992,6 @@ describe('App localization', () => {
         locale: 'en',
       }),
     );
-    openSpy.mockRestore();
   });
 
   it('shows already-available copy and still allows subscribing when the selected range has tickets', async () => {
@@ -923,7 +1003,7 @@ describe('App localization', () => {
     expect(
       await screen.findByText('Some of these dates are already on sale — the alert covers the rest.'),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Get alerts in Telegram' })).toBeEnabled();
+    expect(telegramCtas()).toHaveLength(1);
   });
 
   it('falls back to the normal app for manage URLs when the frontend alert flag is off', async () => {
@@ -1065,17 +1145,19 @@ describe('App localization', () => {
     expect(emptyState).toHaveAttribute('role', 'status');
   });
 
-  it('opens the Telegram deep link for the selected route and range', async () => {
+  it('mints a token and binds it with the signed Telegram identity, with no deep link opened', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
     vi.mocked(createTelegramAlertLink).mockClear();
+    vi.mocked(bindTelegramLogin).mockClear();
     const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
     window.history.replaceState(null, '', '/en/');
-    const user = userEvent.setup();
 
     render(<App />);
 
     await screen.findByRole('heading', { name: 'No seats on sale for this day' });
-    await user.click(screen.getByRole('button', { name: 'Get alerts in Telegram' }));
+    expect(telegramCtas()).toHaveLength(1);
+
+    signInWithTelegram();
 
     await waitFor(() =>
       expect(createTelegramAlertLink).toHaveBeenCalledWith({
@@ -1086,39 +1168,95 @@ describe('App localization', () => {
         locale: 'en',
       }),
     );
-    expect(openSpy).toHaveBeenCalledWith('https://t.me/get_flights_ge_bot?start=token-1', '_blank', 'noopener,noreferrer');
-    expect(await screen.findByRole('link', { name: 'Open Telegram' })).toHaveAttribute(
-      'href',
-      'https://t.me/get_flights_ge_bot?start=token-1',
+    await waitFor(() =>
+      expect(bindTelegramLogin).toHaveBeenCalledWith({ token: 'token-1', user: telegramWidgetUser }),
     );
+    // The primary path never leaves the page for a deep link.
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(await screen.findByText(/Alerts are on for Jul 31 – Aug 7/)).toBeInTheDocument();
+    // The success state replaces the action instead of adding a second one.
+    expect(telegramCtas()).toHaveLength(0);
     openSpy.mockRestore();
   });
 
-  it('shows an error and no link when the Telegram link request fails', async () => {
+  it('offers the new-chat fallback, and only that, when Telegram may not message the user yet', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
-    vi.mocked(createTelegramAlertLink).mockRejectedValueOnce(new Error('boom'));
-    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
+    vi.mocked(bindTelegramLogin).mockResolvedValueOnce({
+      needsStart: true,
+      startUrl: 'https://t.me/get_flights_ge_bot',
+    });
     window.history.replaceState(null, '', '/en/');
-    const user = userEvent.setup();
 
     render(<App />);
 
     await screen.findByRole('heading', { name: 'No seats on sale for this day' });
-    await user.click(screen.getByRole('button', { name: 'Get alerts in Telegram' }));
+    signInWithTelegram();
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Could not create the Telegram link. Try again.');
-    expect(openSpy).not.toHaveBeenCalled();
-    expect(screen.queryByRole('link', { name: 'Open Telegram' })).not.toBeInTheDocument();
-    openSpy.mockRestore();
+    const fallback = await screen.findByRole('link', { name: /Open the bot/ });
+    expect(fallback).toHaveAttribute('href', 'https://t.me/get_flights_ge_bot');
+    // A bare bot link: the binding already happened, so it carries no token.
+    expect(fallback.getAttribute('href')).not.toContain('start=');
+    expect(
+      screen.getByText('Almost there — open the bot once and press Start so it may message you.'),
+    ).toBeInTheDocument();
+    // Still exactly one Telegram action: the fallback took the widget's place.
+    expect(telegramCtas()).toHaveLength(1);
   });
 
-  it('does not request a Telegram link while the selected alert route is invalid in the loaded snapshot', async () => {
+  it('shows an error and binds nothing when the token request fails', async () => {
+    vi.mocked(readAlertsEnabled).mockReturnValue(true);
+    vi.mocked(createTelegramAlertLink).mockRejectedValueOnce(new Error('boom'));
+    vi.mocked(bindTelegramLogin).mockClear();
+    window.history.replaceState(null, '', '/en/');
+
+    render(<App />);
+
+    await screen.findByRole('heading', { name: 'No seats on sale for this day' });
+    signInWithTelegram();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not turn the alert on. Try again.');
+    expect(bindTelegramLogin).not.toHaveBeenCalled();
+    expect(screen.queryByRole('link', { name: /Open the bot/ })).not.toBeInTheDocument();
+    // The action stays available so the traveller can try again.
+    expect(telegramCtas()).toHaveLength(1);
+  });
+
+  it('shows an error and no subscription when the Telegram binding is rejected', async () => {
+    vi.mocked(readAlertsEnabled).mockReturnValue(true);
+    vi.mocked(bindTelegramLogin).mockRejectedValueOnce(new Error('401'));
+    window.history.replaceState(null, '', '/en/');
+
+    render(<App />);
+
+    await screen.findByRole('heading', { name: 'No seats on sale for this day' });
+    signInWithTelegram();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not turn the alert on. Try again.');
+    expect(screen.queryByText(/Alerts are on for/)).not.toBeInTheDocument();
+  });
+
+  // Without the stage flags the widget has nothing to mount, so no Telegram
+  // action is offered at all — the deep link never becomes the primary path.
+  it('offers no Telegram action when the sign-in widget is not enabled for this build', async () => {
+    vi.mocked(readAlertsEnabled).mockReturnValue(true);
+    vi.mocked(readTelegramLoginConfig).mockReturnValue({ enabled: false, botUsername: null });
+    window.history.replaceState(null, '', '/en/');
+
+    render(<App />);
+
+    await screen.findByRole('heading', { name: 'No seats on sale for this day' });
+
+    expect(telegramCtas()).toHaveLength(0);
+    expect(screen.getByText('Telegram sign-in is not available in this environment.')).toBeInTheDocument();
+  });
+
+  it('offers no Telegram action while the selected alert route is invalid in the loaded snapshot', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
     vi.mocked(createTelegramAlertLink).mockClear();
     vi.mocked(loadAvailabilitySnapshot).mockImplementationOnce(
       () =>
         new Promise(() => {
-          // keep loading pending so invalid query params cannot race into a submit
+          // keep loading pending so invalid query params cannot race into a bind
         }),
     );
     window.history.replaceState(null, '', '/en/?from=4&to=5&dateFrom=2026-08-01&dateTo=2026-08-31');
@@ -1128,27 +1266,29 @@ describe('App localization', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Set up an alert' }));
 
-    expect(screen.getByRole('button', { name: 'Get alerts in Telegram' })).toBeDisabled();
+    expect(telegramCtas()).toHaveLength(0);
     expect(createTelegramAlertLink).not.toHaveBeenCalled();
   });
 
-  it('drops the stale Telegram link when the alert range changes', async () => {
+  it('drops the stale binding result when the alert range changes', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
-    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
     window.history.replaceState(null, '', '/en/');
     const user = userEvent.setup();
 
     render(<App />);
 
     await screen.findByRole('heading', { name: 'No seats on sale for this day' });
-    await user.click(screen.getByRole('button', { name: 'Get alerts in Telegram' }));
+    signInWithTelegram();
 
-    expect(await screen.findByRole('link', { name: 'Open Telegram' })).toBeInTheDocument();
+    expect(await screen.findByText(/Alerts are on for/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Pick dates in the calendar' }));
     await user.click(screen.getByRole('button', { name: rangeStartDayName(5) }));
+    await user.click(screen.getByRole('button', { name: rangeEndDayName(12) }));
 
-    await waitFor(() => expect(screen.queryByRole('link', { name: 'Open Telegram' })).not.toBeInTheDocument());
-    openSpy.mockRestore();
+    // A new window is a new subscription: the old confirmation must not stand
+    // in for it, and the action comes back for the new one.
+    await waitFor(() => expect(screen.queryByText(/Alerts are on for/)).not.toBeInTheDocument());
+    expect(telegramCtas()).toHaveLength(1);
   });
 });

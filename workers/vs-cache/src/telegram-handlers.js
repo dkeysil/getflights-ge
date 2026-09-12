@@ -2,6 +2,7 @@ import { CITIES } from './availability.js';
 import { findMatchingDates, hashAlertToken, normalizeAlertRouteInput } from './alerts-domain.js';
 import { createTelegramClient } from './telegram-api.js';
 import {
+  buildTelegramChatUrl,
   buildTelegramSearchUrl,
   buildTelegramStartUrl,
   createTelegramLinkToken,
@@ -16,6 +17,7 @@ import {
   renderTelegramStopMessage,
   renderTelegramSubscribedMessage,
 } from './telegram-messages.js';
+import { TelegramLoginVerificationError, verifyTelegramLoginPayload } from './telegram-login.js';
 import { createTelegramAlertStore } from './telegram-store.js';
 
 const jsonHeaders = {
@@ -24,12 +26,16 @@ const jsonHeaders = {
 };
 const defaultAppOrigin = 'https://getflights.ge';
 const defaultBotUsername = 'get_flights_ge_bot';
-const linkTokenTtlMs = 15 * 60 * 1000;
+// Five minutes: the token is handed to the browser and exchanged immediately by
+// the login widget, so a longer life only widens the window for a leaked one.
+const linkTokenTtlMs = 5 * 60 * 1000;
 const linkRateLimit = { action: 'telegram-link', limit: 10, windowSeconds: 60 * 60 };
+const loginRateLimit = { action: 'telegram-login', limit: 20, windowSeconds: 60 * 60 };
 const webhookRateLimit = { action: 'telegram-update', limit: 20, windowSeconds: 60 };
 const secretHeader = 'X-Telegram-Bot-Api-Secret-Token';
 
 export const telegramLinkPath = '/api/alerts/telegram/link';
+export const telegramLoginPath = '/api/alerts/telegram/login';
 export const telegramWebhookPath = '/api/telegram/webhook';
 
 export async function handleTelegramRequest(request, env, options = {}) {
@@ -39,6 +45,10 @@ export async function handleTelegramRequest(request, env, options = {}) {
   try {
     if (url.pathname === telegramLinkPath && request.method === 'POST') {
       return await handleLink(request, env, options, now);
+    }
+
+    if (url.pathname === telegramLoginPath && request.method === 'POST') {
+      return await handleLogin(request, env, options, now);
     }
 
     if (url.pathname === telegramWebhookPath && request.method === 'POST') {
@@ -84,10 +94,114 @@ async function handleLink(request, env, options, now) {
   await store.createLinkToken({ tokenHash: await hashAlertToken(token), ...input, expiresAt });
 
   return json({
+    // The same secret the deep link already carries, handed over separately so
+    // the login widget can bind it without parsing a URL.
+    token,
     url,
     expiresAt,
     matchingDates: findMatchingDates({ availability: snapshot?.availability, ...input }),
   });
+}
+
+// Stage-only binding through the official Telegram Login Widget. Telegram signs
+// the widget payload with the bot token, so verifying that signature here is
+// what makes the identity trustworthy — the deep link's /start round trip is
+// kept only for the chat that the bot may not message yet.
+async function handleLogin(request, env, options, now) {
+  const config = readTelegramConfig(env);
+
+  // Off by default and 404 rather than 403: production must not even admit the
+  // endpoint exists until the flag is deliberately set on that environment.
+  if (!config.loginEnabled) {
+    return json({ error: 'Not found.' }, 404);
+  }
+
+  if (!isAllowedLoginOrigin(request, config.loginAllowedOrigins)) {
+    return json({ error: 'Forbidden.' }, 403);
+  }
+
+  if (!env?.ALERTS_DB?.prepare || !config.botToken || !config.botUsername) {
+    return json({ error: 'Telegram alerts are unavailable.' }, 503);
+  }
+
+  const body = await readJson(request);
+  const rawToken = typeof body?.token === 'string' ? body.token.trim() : '';
+  if (!rawToken) {
+    return json({ error: 'Invalid login request.' }, 400);
+  }
+
+  const store = createTelegramAlertStore(env.ALERTS_DB, { now });
+  const rateLimit = await store.reserveRateLimit({ ...loginRateLimit, scope: requestIp(request) });
+  if (!rateLimit.allowed) {
+    return rateLimited(rateLimit.retryAfterSeconds);
+  }
+
+  // Verification happens before the token is touched, so a forged or stale
+  // payload leaves the alert token unconsumed and retryable.
+  let identity;
+  try {
+    identity = await verifyTelegramLoginPayload({ payload: body?.user, botToken: config.botToken, now });
+  } catch (error) {
+    if (!(error instanceof TelegramLoginVerificationError)) throw error;
+    logError('telegram_login_rejected', { reason: error.reason }, error);
+    return json({ error: 'Telegram login could not be verified.' }, 401);
+  }
+
+  // Single-use and expiry are both enforced by this one atomic statement.
+  const token = await store.consumeLinkToken(await hashAlertToken(rawToken));
+  if (!token) {
+    return json({ error: 'Alert token expired or already used.' }, 410);
+  }
+
+  const subscription = {
+    chatId: identity.userId,
+    fromId: token.from_id,
+    toId: token.to_id,
+    dateFrom: token.date_from,
+    dateTo: token.date_to,
+    locale: token.locale,
+  };
+  await store.activateSubscription(subscription);
+
+  const appOrigin = readAppOrigin(env);
+  const sendMessage = options.sendMessage ?? createSender(env, config, options);
+  const confirmation = {
+    chatId: identity.userId,
+    text: renderTelegramSubscribedMessage({
+      locale: token.locale,
+      routeLabel: routeLabelForIds(token.from_id, token.to_id),
+      dateFrom: token.date_from,
+      dateTo: token.date_to,
+      searchUrl: buildTelegramSearchUrl({ appOrigin, ...subscription }),
+    }),
+  };
+
+  // The binding is already committed and the token already spent, so no send
+  // failure may be reported as a failed subscription: a retry would only hit a
+  // consumed token. A bot also cannot open a chat the user never started, which
+  // is the common case here. Either way the answer is the same — the alert is
+  // on, and opening the bot chat once is what makes it deliverable.
+  try {
+    await sendMessage(confirmation);
+  } catch (error) {
+    logError('telegram_login_needs_start', { chatId: identity.userId }, error);
+    return json({
+      ok: true,
+      needsStart: true,
+      startUrl: buildTelegramChatUrl(config.botUsername),
+      dateFrom: token.date_from,
+      dateTo: token.date_to,
+    });
+  }
+
+  return json({ ok: true, needsStart: false, dateFrom: token.date_from, dateTo: token.date_to });
+}
+
+function isAllowedLoginOrigin(request, allowedOrigins) {
+  if (allowedOrigins.length === 0) return false;
+  const origin = request.headers.get('Origin');
+  if (!origin) return false;
+  return allowedOrigins.includes(origin);
 }
 
 async function handleWebhook(request, env, options, now) {
@@ -200,7 +314,29 @@ export function readTelegramConfig(env) {
     webhookSecret:
       typeof env?.TELEGRAM_WEBHOOK_SECRET === 'string' && env.TELEGRAM_WEBHOOK_SECRET ? env.TELEGRAM_WEBHOOK_SECRET : null,
     botUsername: normalizeTelegramBotUsername(env?.TELEGRAM_BOT_USERNAME ?? defaultBotUsername),
+    // Both of these are absent on production on purpose: the login widget is a
+    // staging-only surface until the flow is signed off.
+    loginEnabled: env?.TELEGRAM_LOGIN_ENABLED === 'true',
+    loginAllowedOrigins: parseOriginList(env?.TELEGRAM_LOGIN_ALLOWED_ORIGINS),
   };
+}
+
+// An empty or malformed list denies every origin: the widget endpoint has no
+// safe default caller.
+function parseOriginList(value) {
+  if (typeof value !== 'string') return [];
+  return value
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      try {
+        return new URL(entry).origin;
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
 }
 
 export function readAppOrigin(env) {
