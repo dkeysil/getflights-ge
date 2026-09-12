@@ -99,8 +99,31 @@ describe('localization helpers', () => {
   it('includes localized alert panel copy in every supported locale', () => {
     expect(messages.en.alertsInviteTitle).toBe('Watch this route instead');
     expect(messages.ru.alertsManage).toBe('Управлять уведомлениями');
-    expect(messages.ua.alertsMonthShortcut).toBe('Цей місяць');
+    expect(messages.ua.alertsRangePick).toBe('Вибрати дати в календарі');
     expect(messages.ka.alertsCheckEmail).toContain('ელფოსტა');
+  });
+
+  it('translates every calendar range-picking control in all four locales', () => {
+    for (const locale of localeOptions.map((option) => option.locale)) {
+      const copy = messages[locale];
+      for (const value of [
+        copy.alertsRangeLegend,
+        copy.alertsRangePick,
+        copy.alertsRangeCancel,
+        copy.alertsRangeReset,
+        copy.alertsRangeStartHint,
+        copy.alertsRangeEndHint,
+        copy.alertsRangeCalendarHint,
+      ]) {
+        expect(value.length).toBeGreaterThan(0);
+      }
+      // The standalone date inputs and presets are gone: nothing may reference them.
+      expect(copy).not.toHaveProperty('alertsDateFromLabel');
+      expect(copy).not.toHaveProperty('alertsDateToLabel');
+      expect(copy).not.toHaveProperty('alertsMonthShortcut');
+      expect(copy).not.toHaveProperty('alertsRangeWeek');
+      expect(copy).not.toHaveProperty('alertsRangePresetsLabel');
+    }
   });
 
   it('names the current route in every alert headline, body and screen-reader label', () => {

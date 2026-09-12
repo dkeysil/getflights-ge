@@ -978,6 +978,62 @@ button:disabled {
   background: #fff;
 }
 
+/* The watched window has to read at a glance next to the red booking day, so it
+   uses the teal alert accent: a tinted interior with solid caps on the edges. */
+.day.in-range {
+  background: var(--sky-tint);
+  color: var(--sky-ink);
+  box-shadow: inset 0 0 0 1px rgba(14, 124, 123, 0.25);
+}
+
+.day.range-start,
+.day.range-end {
+  background: var(--sky);
+  border-color: var(--sky);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px var(--sky);
+  font-weight: 700;
+}
+
+.day.range-start.range-end {
+  box-shadow: inset 0 0 0 1px var(--sky), 0 6px 16px rgba(14, 124, 123, 0.24);
+}
+
+.day.in-range.avail::after {
+  background: var(--sky-ink);
+}
+
+.day.range-start::after,
+.day.range-end::after {
+  background: #fff;
+}
+
+/* The booking day stays red even inside the window: it is a different question. */
+.day.sel,
+.day.sel.in-range,
+.day.sel.range-start,
+.day.sel.range-end {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(200, 16, 46, 0.28);
+}
+
+.day.sel.in-range {
+  box-shadow: 0 8px 20px rgba(200, 16, 46, 0.28), inset 0 0 0 2px rgba(14, 124, 123, 0.55);
+}
+
+.day.sel.in-range::after {
+  background: #fff;
+}
+
+/* While the calendar is armed the whole month is clickable, so the panel is not
+   the only signal that day clicks changed meaning. */
+.calendar-panel.picking-range {
+  border-color: var(--sky);
+  box-shadow: 0 0 0 3px rgba(14, 124, 123, 0.1), var(--shadow);
+}
+
 .day.skeleton {
   border-color: transparent;
   background: linear-gradient(90deg, #eef2f5, #f8fafc, #eef2f5);
@@ -1206,7 +1262,6 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 14px;
   padding: 14px 16px;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -1321,33 +1376,31 @@ button:disabled {
   gap: 12px;
 }
 
-.alert-dates {
+.alert-range-picker {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 10px 14px;
-  margin: 0;
-  padding: 0;
-  border: 0;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
 }
 
-.alert-dates legend {
-  padding: 0;
-  margin-bottom: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--faint);
+.alert-range-picker.picking {
+  border-color: var(--sky);
+  box-shadow: 0 0 0 3px rgba(14, 124, 123, 0.12);
 }
 
-.alert-field {
+.alert-range-current {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.alert-field > span {
+.alert-range-legend {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1355,24 +1408,38 @@ button:disabled {
   color: var(--faint);
 }
 
-.alert-field input {
-  min-height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--paper);
-  color: var(--ink);
-  font: inherit;
+.alert-range-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
   font-size: 13.5px;
+  color: var(--ink);
 }
 
-.alert-presets {
+.alert-range-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
+.alert-chip[aria-pressed='true'] {
+  border-color: var(--sky);
+  background: var(--sky-tint);
+  color: var(--sky-ink);
+}
+
+.alert-range-hint {
+  flex: 1 0 100%;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
 .alert-chip {
+  display: inline-flex;
+  align-items: center;
   padding: 7px 11px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -1779,16 +1846,18 @@ button:disabled {
     justify-content: center;
   }
 
-  .alert-field {
+  .alert-range-current {
     flex: 1 0 100%;
   }
 
-  .alert-field input {
-    min-height: 44px;
+  .alert-range-actions {
+    flex: 1 0 100%;
   }
 
   .alert-chip {
-    min-height: 40px;
+    flex: 1 1 auto;
+    min-height: 44px;
+    justify-content: center;
   }
 
   .alert-submit {

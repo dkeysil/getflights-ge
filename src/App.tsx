@@ -15,13 +15,18 @@ import {
   X,
 } from 'lucide-react';
 import { HikeWithAxePromotion } from './components/HikeWithAxePromotion';
-import { TelegramAlertPanel, type TelegramAlertMode } from './components/TelegramAlertPanel';
+import {
+  TelegramAlertPanel,
+  type AlertRangeStep,
+  type TelegramAlertMode,
+} from './components/TelegramAlertPanel';
 import {
   buildMonthCalendar,
   CITIES,
   getRouteAvailability,
   routeKey,
   shiftMonth,
+  type CalendarDay,
 } from './lib/availability';
 import { trackBookingHandoffStarted, trackHikeWithAxeBannerClicked, trackPageView } from './lib/analytics';
 import {
@@ -52,7 +57,6 @@ import {
   alertRangeFromDate,
   hasDatesInRange,
   isValidAlertRange,
-  monthAlertRange,
   todayIso,
 } from './lib/alert-range';
 import {
@@ -104,9 +108,19 @@ type ManagedSubscription = {
   lastAlertSentOn?: string | null;
 };
 
+type AlertRangeDraft = {
+  dateFrom: string;
+  dateTo: string;
+  pinned: boolean;
+};
+
 // Preferred default route on load: Tbilisi (Natakhtari airport, id 7) → Batumi (id 4).
 // Falls back to the first route with dates if this one has none.
 const DEFAULT_ROUTE = { fromId: '7', toId: '4' };
+
+// The alert panel points at the calendar with `aria-controls`, so the grid needs
+// a stable id.
+const calendarGridId = 'availability-calendar';
 
 export function App() {
   const alertsEnabled = readAlertsEnabled();
@@ -151,6 +165,14 @@ export function App() {
   // calendar: only an untouched range keeps following the selected day.
   const [alertRangePinned, setAlertRangePinned] = useState(() => initialAlertSelection.rangeFromUrl);
   const [alertSetupOpen, setAlertSetupOpen] = useState(false);
+  // The range is drawn in the calendar, so picking needs an explicit armed flag:
+  // while it is on, a day click edits the alert window instead of the booking
+  // day. `alertRangeStart` holds the first click until the second one lands.
+  const [alertRangePicking, setAlertRangePicking] = useState(false);
+  const [alertRangeStart, setAlertRangeStart] = useState<string | null>(null);
+  // A first click previews a one-day range. Keep the prior committed window so
+  // abandoning the two-click interaction never changes a subscription.
+  const [alertRangeBeforePick, setAlertRangeBeforePick] = useState<AlertRangeDraft | null>(null);
   const [alertSubmitting, setAlertSubmitting] = useState(false);
   const [alertLinkUrl, setAlertLinkUrl] = useState<string | null>(null);
   const [alertError, setAlertError] = useState<string | null>(null);
@@ -282,8 +304,24 @@ export function App() {
   const alertMode: TelegramAlertMode =
     !loading && !searching && flights.length === 0 && dayHasNoSeats ? 'recovery' : 'invite';
   const alertConfigOpen = alertMode === 'recovery' || alertSetupOpen;
+  const alertPanelVisible = Boolean(alertsEnabled && fromCityName && toCityName);
+  // Armed only while the panel that explains it is on screen, so a leftover flag
+  // can never silently swallow a booking-day click.
+  const alertRangePickingActive = alertPanelVisible && alertConfigOpen && alertRangePicking;
+  const alertRangeStep: AlertRangeStep = alertRangeStart ? 'end' : 'start';
+  // The window is painted on the calendar for as long as its configuration is on
+  // screen, so "Watching Jul 31 - Aug 7" and the marked cells cannot disagree.
+  const alertRangeVisible =
+    alertPanelVisible && alertConfigOpen && isValidAlertRange(alertDateFrom, alertDateTo);
   const alertRouteLabel = `${fromCityName ?? ''} → ${toCityName ?? ''}`;
   const alertRangeLabel = formatDateRange(alertDateFrom, alertDateTo, locale);
+
+  // Recovery is expanded automatically, but a search in flight hides it again.
+  // Clear an armed picker at that boundary rather than letting a later click
+  // inherit a stale start date once the recovery panel comes back.
+  useEffect(() => {
+    if (!alertConfigOpen && alertRangePicking) cancelAlertRangePick();
+  }, [alertConfigOpen, alertRangePicking]);
 
   // Load the real flight(s) for the chosen route + day as soon as a day is selected.
   useEffect(() => {
@@ -370,6 +408,7 @@ export function App() {
   }
 
   function chooseRoute(nextFromId: string, nextToId: string) {
+    cancelAlertRangePick();
     const dates = getRouteAvailability(nextFromId, nextToId, snapshot?.availability ?? {});
     setFromId(nextFromId);
     setToId(nextToId);
@@ -386,13 +425,69 @@ export function App() {
     setAlertDateTo(dateTo);
   }
 
-  // The week preset is the way back to the default, so it releases the pin
-  // instead of freezing today's answer.
+  // Reset is the way back to the default, so it releases the pin instead of
+  // freezing today's answer, and it drops any half-finished pick.
   function followSelectedDayRange() {
     const range = alertRangeFromDate(selectedDate ?? todayIso());
     setAlertRangePinned(false);
     setAlertDateFrom(range.dateFrom);
     setAlertDateTo(range.dateTo);
+    cancelAlertRangePick({ restore: false });
+  }
+
+  function beginAlertRangePick() {
+    setAlertRangeBeforePick({ dateFrom: alertDateFrom, dateTo: alertDateTo, pinned: alertRangePinned });
+    setAlertRangePicking(true);
+    setAlertRangeStart(null);
+  }
+
+  function cancelAlertRangePick({ restore = true }: { restore?: boolean } = {}) {
+    if (restore && alertRangeBeforePick) {
+      setAlertDateFrom(alertRangeBeforePick.dateFrom);
+      setAlertDateTo(alertRangeBeforePick.dateTo);
+      setAlertRangePinned(alertRangeBeforePick.pinned);
+    }
+    setAlertRangePicking(false);
+    setAlertRangeStart(null);
+    setAlertRangeBeforePick(null);
+  }
+
+  // Opening the setup is the traveller asking to choose dates, so it arms the
+  // calendar straight away; closing it hands the calendar back to booking.
+  function toggleAlertSetup() {
+    if (alertSetupOpen) {
+      setAlertSetupOpen(false);
+      cancelAlertRangePick();
+      return;
+    }
+
+    setAlertSetupOpen(true);
+    beginAlertRangePick();
+  }
+
+  // The first click fixes the start and already shows it as a one-day window, so
+  // the panel never lags the calendar; the second closes an inclusive range, in
+  // whichever order the two days were clicked.
+  function pickAlertRangeDate(iso: string) {
+    if (!alertRangeStart) {
+      setAlertRangeStart(iso);
+      pinAlertRange(iso, iso);
+      return;
+    }
+
+    const [dateFrom, dateTo] = iso < alertRangeStart ? [iso, alertRangeStart] : [alertRangeStart, iso];
+    pinAlertRange(dateFrom, dateTo);
+    cancelAlertRangePick({ restore: false });
+  }
+
+  function selectCalendarDay(day: CalendarDay) {
+    if (alertRangePickingActive) {
+      pickAlertRangeDate(day.iso);
+      return;
+    }
+
+    setSelectedDate(day.iso);
+    if (!day.inCurrentMonth) setMonth(monthFromIso(day.iso));
   }
 
   async function subscribeForAlert(event: FormEvent<HTMLFormElement>) {
@@ -808,7 +903,35 @@ export function App() {
         </aside>
 
         <div className="pane-main">
-          <section className="calendar-panel">
+          {/* Above the calendar it drives, and clear of the passenger and
+              purchase controls the traveller uses to actually buy a seat. */}
+          {alertPanelVisible && fromCityName && toCityName ? (
+            <TelegramAlertPanel
+              copy={copy}
+              mode={alertMode}
+              fromCityName={fromCityName}
+              toCityName={toCityName}
+              routeLabel={alertRouteLabel}
+              rangeLabel={alertRangeLabel}
+              hasSelectedDate={Boolean(selectedDate)}
+              open={alertConfigOpen}
+              onToggle={toggleAlertSetup}
+              calendarId={calendarGridId}
+              rangeSelecting={alertRangePickingActive}
+              rangeStep={alertRangeStep}
+              onPickRange={beginAlertRangePick}
+              onCancelRangePick={cancelAlertRangePick}
+              onResetRange={followSelectedDayRange}
+              rangeHasTickets={alertRangeHasTickets}
+              canSubmit={alertRouteValid}
+              submitting={alertSubmitting}
+              error={alertError}
+              linkUrl={alertLinkUrl}
+              onSubmit={(event) => void subscribeForAlert(event)}
+            />
+          ) : null}
+
+          <section className={alertRangePickingActive ? 'calendar-panel picking-range' : 'calendar-panel'}>
             <div className="cal-head">
               <span className="mlabel">
                 {calendar.monthLabel}
@@ -842,37 +965,60 @@ export function App() {
             {loading && !snapshot ? (
               <CalendarSkeleton locale={locale} />
             ) : (
-              <div className="grid">
+              <div className="grid" id={calendarGridId}>
                 {weekdayLabels[locale].map((day) => (
                   <div className="wd" key={day}>
                     {day}
                   </div>
                 ))}
-                {calendar.weeks.flat().map((day) => (
-                  <button
-                    className={[
-                      'day',
-                      day.inCurrentMonth ? '' : 'out',
-                      day.isToday ? 'today' : '',
-                      day.isAvailable ? 'avail' : '',
-                      selectedDate === day.iso ? 'sel' : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                    disabled={!day.isAvailable}
-                    key={day.iso}
-                    type="button"
-                    aria-label={dateButtonAriaLabel(day.iso, locale, fromCityName, toCityName, day.isAvailable)}
-                    aria-pressed={selectedDate === day.iso}
-                    aria-current={day.isToday ? 'date' : undefined}
-                    onClick={() => {
-                      setSelectedDate(day.iso);
-                      if (!day.inCurrentMonth) setMonth(monthFromIso(day.iso));
-                    }}
-                  >
-                    {day.dayOfMonth}
-                  </button>
-                ))}
+                {calendar.weeks.flat().map((day) => {
+                  // A sold-out day is exactly what an alert is for, so while the
+                  // range is being picked every day of the month on screen is
+                  // clickable; booking mode still only offers sellable days.
+                  const rangeEligible = day.inCurrentMonth;
+                  const inAlertRange =
+                    rangeEligible && alertRangeVisible && day.iso >= alertDateFrom && day.iso <= alertDateTo;
+                  const isRangeStart = inAlertRange && day.iso === alertDateFrom;
+                  const isRangeEnd = inAlertRange && day.iso === alertDateTo;
+
+                  return (
+                    <button
+                      className={[
+                        'day',
+                        day.inCurrentMonth ? '' : 'out',
+                        day.isToday ? 'today' : '',
+                        day.isAvailable ? 'avail' : '',
+                        selectedDate === day.iso ? 'sel' : '',
+                        inAlertRange ? 'in-range' : '',
+                        isRangeStart ? 'range-start' : '',
+                        isRangeEnd ? 'range-end' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                      disabled={alertRangePickingActive ? !rangeEligible : !day.isAvailable}
+                      key={day.iso}
+                      type="button"
+                      aria-label={
+                        alertRangePickingActive
+                          ? alertRangeDateAriaLabel(
+                              day.iso,
+                              locale,
+                              fromCityName,
+                              toCityName,
+                              alertRangeStep,
+                              rangeEligible,
+                              isRangeStart ? 'start' : isRangeEnd ? 'end' : inAlertRange ? 'inside' : null,
+                            )
+                          : dateButtonAriaLabel(day.iso, locale, fromCityName, toCityName, day.isAvailable)
+                      }
+                      aria-pressed={alertRangePickingActive ? inAlertRange : selectedDate === day.iso}
+                      aria-current={day.isToday ? 'date' : undefined}
+                      onClick={() => selectCalendarDay(day)}
+                    >
+                      {day.dayOfMonth}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </section>
@@ -973,35 +1119,6 @@ export function App() {
                 </div>
               ) : null}
             </div>
-
-            {alertsEnabled && fromCityName && toCityName ? (
-              <TelegramAlertPanel
-                copy={copy}
-                mode={alertMode}
-                fromCityName={fromCityName}
-                toCityName={toCityName}
-                routeLabel={alertRouteLabel}
-                rangeLabel={alertRangeLabel}
-                hasSelectedDate={Boolean(selectedDate)}
-                dateFrom={alertDateFrom}
-                dateTo={alertDateTo}
-                open={alertConfigOpen}
-                onToggle={() => setAlertSetupOpen((open) => !open)}
-                onDateFromChange={(value) => pinAlertRange(value, alertDateTo)}
-                onDateToChange={(value) => pinAlertRange(alertDateFrom, value)}
-                onSelectWeekRange={followSelectedDayRange}
-                onSelectMonthRange={() => {
-                  const range = monthAlertRange(month.year, month.monthIndex);
-                  pinAlertRange(range.dateFrom, range.dateTo);
-                }}
-                rangeHasTickets={alertRangeHasTickets}
-                canSubmit={alertRouteValid}
-                submitting={alertSubmitting}
-                error={alertError}
-                linkUrl={alertLinkUrl}
-                onSubmit={(event) => void subscribeForAlert(event)}
-              />
-            ) : null}
           </section>
         </div>
       </section>
@@ -1458,6 +1575,35 @@ function dateButtonAriaLabel(
   const label = formatSelectedDate(iso, locale);
   const route = fromCityName && toCityName ? ` for ${fromCityName} to ${toCityName}` : '';
   return isAvailable ? `Choose available date ${label}${route}` : `Unavailable date ${label}${route}`;
+}
+
+// While the calendar is armed for an alert range, a day button no longer picks a
+// booking day, so its accessible name has to say which half of the range the
+// click lands on and where the day already sits.
+function alertRangeDateAriaLabel(
+  iso: string,
+  locale: Locale,
+  fromCityName: string | undefined,
+  toCityName: string | undefined,
+  step: AlertRangeStep,
+  eligible: boolean,
+  position: 'start' | 'end' | 'inside' | null,
+) {
+  const label = formatSelectedDate(iso, locale);
+  const route = fromCityName && toCityName ? ` for ${fromCityName} to ${toCityName}` : '';
+  if (!eligible) return `Date outside this month ${label}${route}`;
+
+  const action = step === 'start' ? 'Choose alert range start' : 'Choose alert range end';
+  const state =
+    position === 'start'
+      ? ' Current alert range start.'
+      : position === 'end'
+        ? ' Current alert range end.'
+        : position === 'inside'
+          ? ' Inside the current alert range.'
+          : '';
+
+  return `${action} ${label}${route}.${state}`;
 }
 
 function bookFlightAriaLabel(

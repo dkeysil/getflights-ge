@@ -6,8 +6,9 @@ predecessor: it is left in place, but nothing in the UI reaches it.
 
 ## Flow
 
-1. The search UI collects a route and an inclusive date range and calls
-   `POST /api/alerts/telegram/link`.
+1. The search UI collects a route and an inclusive date range — the range is
+   picked as two clicks on the availability calendar, which opens up sold-out
+   days while the pick is armed — and calls `POST /api/alerts/telegram/link`.
 2. The Worker validates the route against the live availability snapshot,
    rate-limits the caller, mints a random token, stores only its SHA-256 hash
    with the route/range/locale payload and a 15-minute expiry, and returns

@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowRight, BellRing, ChevronDown, ExternalLink, Loader2, Send } from 'lucide-react';
+import { AlertCircle, ArrowRight, BellRing, CalendarRange, ChevronDown, ExternalLink, Loader2, Send } from 'lucide-react';
 import type { FormEvent } from 'react';
 import type { Messages } from '../lib/i18n';
 
@@ -6,6 +6,10 @@ import type { Messages } from '../lib/i18n';
 // single collapsed line. `recovery` is what a dead-end day gets instead: the
 // configuration is the point of the section, so it is open from the start.
 export type TelegramAlertMode = 'invite' | 'recovery';
+
+// The range is picked in the calendar below, so the panel only ever reports
+// which half of the pick it is waiting for.
+export type AlertRangeStep = 'start' | 'end';
 
 type Props = {
   copy: Messages;
@@ -15,14 +19,14 @@ type Props = {
   routeLabel: string;
   rangeLabel: string;
   hasSelectedDate: boolean;
-  dateFrom: string;
-  dateTo: string;
   open: boolean;
   onToggle: () => void;
-  onDateFromChange: (value: string) => void;
-  onDateToChange: (value: string) => void;
-  onSelectWeekRange: () => void;
-  onSelectMonthRange: () => void;
+  calendarId: string;
+  rangeSelecting: boolean;
+  rangeStep: AlertRangeStep;
+  onPickRange: () => void;
+  onCancelRangePick: () => void;
+  onResetRange: () => void;
   rangeHasTickets: boolean;
   canSubmit: boolean;
   submitting: boolean;
@@ -42,14 +46,14 @@ export function TelegramAlertPanel({
   routeLabel,
   rangeLabel,
   hasSelectedDate,
-  dateFrom,
-  dateTo,
   open,
   onToggle,
-  onDateFromChange,
-  onDateToChange,
-  onSelectWeekRange,
-  onSelectMonthRange,
+  calendarId,
+  rangeSelecting,
+  rangeStep,
+  onPickRange,
+  onCancelRangePick,
+  onResetRange,
   rangeHasTickets,
   canSubmit,
   submitting,
@@ -105,25 +109,42 @@ export function TelegramAlertPanel({
       <div className="alert-config" id={configId}>
         {open ? (
           <form onSubmit={onSubmit}>
-            <fieldset className="alert-dates">
-              <legend>{copy.alertsRangeLegend}</legend>
-              <label className="alert-field">
-                <span>{copy.alertsDateFromLabel}</span>
-                <input type="date" value={dateFrom} onChange={(event) => onDateFromChange(event.target.value)} />
-              </label>
-              <label className="alert-field">
-                <span>{copy.alertsDateToLabel}</span>
-                <input type="date" value={dateTo} onChange={(event) => onDateToChange(event.target.value)} />
-              </label>
-              <div className="alert-presets" role="group" aria-label={copy.alertsRangePresetsLabel}>
-                <button className="alert-chip" type="button" onClick={onSelectWeekRange}>
-                  {copy.alertsRangeWeek}
+            <div
+              className={rangeSelecting ? 'alert-range-picker picking' : 'alert-range-picker'}
+              role="group"
+              aria-label={copy.alertsRangeLegend}
+            >
+              <div className="alert-range-current">
+                <span className="alert-range-legend">{copy.alertsRangeLegend}</span>
+                <strong className="alert-range-value">
+                  <CalendarRange aria-hidden="true" size={14} />
+                  {rangeLabel}
+                </strong>
+              </div>
+              <div className="alert-range-actions">
+                <button
+                  className="alert-chip"
+                  type="button"
+                  aria-controls={calendarId}
+                  aria-pressed={rangeSelecting}
+                  onClick={rangeSelecting ? onCancelRangePick : onPickRange}
+                >
+                  {rangeSelecting ? copy.alertsRangeCancel : copy.alertsRangePick}
                 </button>
-                <button className="alert-chip" type="button" onClick={onSelectMonthRange}>
-                  {copy.alertsMonthShortcut}
+                <button className="alert-chip" type="button" onClick={onResetRange}>
+                  {copy.alertsRangeReset}
                 </button>
               </div>
-            </fieldset>
+              {/* The pick happens in the calendar below, so the step has to be
+                  announced here rather than left to the visual highlight. */}
+              <p className="alert-range-hint" role="status">
+                {rangeSelecting
+                  ? rangeStep === 'start'
+                    ? copy.alertsRangeStartHint
+                    : copy.alertsRangeEndHint
+                  : copy.alertsRangeCalendarHint}
+              </p>
+            </div>
 
             {rangeHasTickets ? <p className="alert-available">{copy.alertsAlreadyAvailable}</p> : null}
 
