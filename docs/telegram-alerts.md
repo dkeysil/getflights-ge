@@ -60,19 +60,28 @@ npx wrangler secret put TELEGRAM_WEBHOOK_SECRET --config workers/vs-cache/wrangl
 For local Worker development put the same names in an untracked
 `workers/vs-cache/.dev.vars` file (`.dev.vars*` is git-ignored).
 
-## One-time setup (not performed by this branch)
+## Production rollout
+
+The D1 binding is already declared in `workers/vs-cache/wrangler.jsonc`. For a
+fresh Telegram-only D1 database, apply **only** the Telegram schema; migration
+`0001` belongs to the inactive email predecessor.
 
 ```bash
-# 1. Create the database and apply both migrations.
+# 1. Create the database once, then place its returned id in wrangler.jsonc.
 npx wrangler d1 create getflights-alerts
-# Put the returned database_id into the d1_databases block in
-# workers/vs-cache/wrangler.jsonc (currently commented out), then:
-npx wrangler d1 migrations apply getflights-alerts --remote
 
-# 2. Set the two secrets (above), deploy the Worker.
+# 2. Apply the Telegram-only schema and set the two Worker secrets.
+npx wrangler d1 execute getflights-alerts --remote \
+  --file workers/vs-cache/migrations/0002_telegram_alert_subscriptions.sql
+npx wrangler secret put TELEGRAM_BOT_TOKEN --config workers/vs-cache/wrangler.jsonc
+npx wrangler secret put TELEGRAM_WEBHOOK_SECRET --config workers/vs-cache/wrangler.jsonc
+
+# 3. Deploy the Worker and production frontend. The build flag makes the CTA live.
 npx wrangler deploy --config workers/vs-cache/wrangler.jsonc
+VITE_ALERTS_ENABLED=true npm run build
+npx wrangler pages deploy dist --project-name better-vanillasky --branch main
 
-# 3. Point the bot at the Worker, using the same secret value.
+# 4. Point the bot at the public Pages webhook using the same secret value.
 curl -X POST "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
   -H 'Content-Type: application/json' \
   -d '{"url":"https://getflights.ge/api/telegram/webhook",
