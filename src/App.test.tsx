@@ -150,6 +150,12 @@ function telegramCtas() {
   return document.querySelectorAll('[data-telegram-cta]');
 }
 
+async function chooseAlertRange(user: ReturnType<typeof userEvent.setup>, start = 5, end = 12) {
+  await user.click(screen.getByRole('button', { name: 'Pick dates in the calendar' }));
+  await user.click(screen.getByRole('button', { name: rangeStartDayName(start) }));
+  await user.click(screen.getByRole('button', { name: rangeEndDayName(end) }));
+}
+
 beforeEach(() => {
   // `vi.restoreAllMocks()` in afterEach clears the factory implementations, so
   // the Telegram-login defaults are re-established per test.
@@ -636,7 +642,7 @@ describe('App localization', () => {
     expect(screen.queryByRole('heading', { name: 'Watch this route instead' })).not.toBeInTheDocument();
   });
 
-  it('renders a collapsed, route-aware alert invite above the calendar it now drives', async () => {
+  it('renders a collapsed, route-aware alert invite attached to the calendar', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
     vi.mocked(searchFlights).mockResolvedValueOnce(oneFlight);
     window.history.replaceState(null, '', '/en/');
@@ -656,7 +662,7 @@ describe('App localization', () => {
         'Seats on Tbilisi (Natakhtari airport) → Batumi sell out and reopen. We can message you in Telegram when new ones appear.',
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText('Watching Jul 31 – Aug 7')).toBeInTheDocument();
+    expect(screen.queryByText(/Watching /)).not.toBeInTheDocument();
 
     const toggle = screen.getByRole('button', { name: 'Set up an alert' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
@@ -664,7 +670,7 @@ describe('App localization', () => {
     expect(telegramCtas()).toHaveLength(0);
   });
 
-  it('puts the alert entry above the calendar and outside the passenger and purchase zone', async () => {
+  it('puts the alert entry in the calendar footer and outside the passenger and purchase zone', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
     vi.mocked(searchFlights).mockResolvedValueOnce(oneFlight);
     window.history.replaceState(null, '', '/en/');
@@ -682,11 +688,11 @@ describe('App localization', () => {
 
     expect(calendarPanel).not.toBeNull();
     expect(dayDetail).not.toBeNull();
-    // Above the calendar it drives...
-    expect(panel.compareDocumentPosition(calendarPanel as Node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // The alert is a footer of the calendar it drives...
+    expect(calendarPanel?.contains(panel)).toBe(true);
     // ...and clear of the passengers/tickets zone it used to live in.
     expect(dayDetail?.contains(panel)).toBe(false);
-    expect(panel.parentElement).toBe(document.querySelector('.pane-main'));
+    expect(panel.parentElement).toBe(calendarPanel);
   });
 
   it('opens the alert configuration on demand and keeps its aria state in sync', async () => {
@@ -721,13 +727,13 @@ describe('App localization', () => {
     expect(toggle).toHaveAttribute('aria-controls', 'telegram-alert-config');
 
     const rangeGroup = screen.getByRole('group', { name: 'Dates to watch' });
-    expect(within(rangeGroup).getByText('Jul 31 – Aug 7')).toBeInTheDocument();
+    expect(within(rangeGroup).getByText('Choose a date range')).toBeInTheDocument();
     // Opening the setup arms the calendar, and says so where it can be heard.
     const pickToggle = within(rangeGroup).getByRole('button', { name: 'Stop picking dates' });
     expect(pickToggle).toHaveAttribute('aria-pressed', 'true');
     expect(pickToggle).toHaveAttribute('aria-controls', 'availability-calendar');
-    expect(within(rangeGroup).getByRole('button', { name: 'Reset to selected day' })).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('Tap the first day to watch in the calendar below.');
+    expect(within(rangeGroup).getByRole('button', { name: 'Clear dates' })).toBeEnabled();
+    expect(screen.getByRole('status')).toHaveTextContent('Tap the first day to watch in the calendar above.');
     // The standalone inputs and presets are gone.
     expect(screen.queryByLabelText('From date')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('To date')).not.toBeInTheDocument();
@@ -764,10 +770,10 @@ describe('App localization', () => {
       'aria-pressed',
       'false',
     );
-    expect(within(rangeGroup).getByText('These dates come from the calendar below.')).toBeInTheDocument();
-    // One action, inside the block that shows the completed window.
-    expect(telegramCtas()).toHaveLength(1);
-    expect(rangeGroup.querySelectorAll('[data-telegram-cta]')).toHaveLength(1);
+    expect(within(rangeGroup).getByText('Choose dates in the calendar above.')).toBeInTheDocument();
+    // No date range has been supplied, so Telegram is not offered yet.
+    expect(telegramCtas()).toHaveLength(0);
+    expect(rangeGroup.querySelectorAll('[data-telegram-cta]')).toHaveLength(0);
 
     expect(screen.getByText('Telegram asks you to confirm it is you — after that the alert is on.')).toBeInTheDocument();
     expect(
@@ -778,18 +784,19 @@ describe('App localization', () => {
     expect(screen.getByText('Send /stop in Telegram to end alerts any time.')).toBeInTheDocument();
   });
 
-  it('defaults the watched range to the selected day plus a week and follows later day picks', async () => {
+  it('does not infer a watched range from the selected booking day or route', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
     window.history.replaceState(null, '', '/en/?from=6&to=5');
     const user = userEvent.setup();
 
     render(<App />);
 
-    await waitFor(() => expect(screen.getByText('Watching Jul 1 – Jul 8')).toBeInTheDocument());
+    await screen.findByRole('heading', { name: 'No seats on sale for this day' });
+    expect(screen.getByText('Choose a date range')).toBeInTheDocument();
 
     await user.click(await screen.findByRole('button', { name: /Select route Tbilisi \(Natakhtari airport\) to Batumi/i }));
 
-    await waitFor(() => expect(screen.getByText('Watching Jul 31 – Aug 7')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Choose a date range')).toBeInTheDocument());
   });
 
   it('preselects route and range from query params when alerts are enabled', async () => {
@@ -802,11 +809,11 @@ describe('App localization', () => {
       'aria-pressed',
       'true',
     );
-    // A range carried by the URL outranks the selected-day default.
+    // A valid range carried by the URL is deliberately preserved.
     expect(await screen.findByText('Watching Jul 1 – Jul 31')).toBeInTheDocument();
   });
 
-  it('keeps a calendar-picked range pinned across routes and restores the default on reset', async () => {
+  it('keeps a calendar-picked range pinned across routes and clears it on reset', async () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
     window.history.replaceState(null, '', '/en/');
     const user = userEvent.setup();
@@ -814,9 +821,7 @@ describe('App localization', () => {
     render(<App />);
 
     await screen.findByRole('heading', { name: 'No seats on sale for this day' });
-    await user.click(screen.getByRole('button', { name: 'Pick dates in the calendar' }));
-    await user.click(screen.getByRole('button', { name: rangeStartDayName(5) }));
-    await user.click(screen.getByRole('button', { name: rangeEndDayName(20) }));
+    await chooseAlertRange(user, 5, 20);
 
     const picked = formatDateRange(isoDay(5), isoDay(20), 'en');
     expect(screen.getByText(`Watching ${picked}`)).toBeInTheDocument();
@@ -832,9 +837,9 @@ describe('App localization', () => {
     // The calendar moved to 1 July, but a picked range is the traveller's to change.
     expect(screen.getByText(`Watching ${picked}`)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Reset to selected day' }));
+    await user.click(screen.getByRole('button', { name: 'Clear dates' }));
 
-    expect(screen.getByText('Watching Jul 1 – Jul 8')).toBeInTheDocument();
+    expect(screen.getByText('Choose a date range')).toBeInTheDocument();
   });
 
   it('walks the calendar from start to end day and marks the whole inclusive window', async () => {
@@ -951,13 +956,13 @@ describe('App localization', () => {
     await user.click(screen.getByRole('button', { name: rangeStartDayName(5) }));
     await user.click(screen.getByRole('button', { name: 'Stop picking dates' }));
 
-    // The first tap committed nothing: the previous window is still the window.
-    expect(screen.getByText(`Watching ${formatDateRange(isoDay(10), isoDay(17), 'en')}`)).toBeInTheDocument();
+    // The first tap committed nothing: no watched window has been fabricated.
+    expect(screen.getByText('Choose a date range')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: soldOutDayName(5) }).className).not.toContain('range-pending');
     // The calendar is back to booking, on the same day it was selecting before.
     expect(screen.getByRole('button', { name: soldOutDayName(20) })).toBeDisabled();
     expect(screen.getByRole('button', { name: bookableDayName(10) })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('status')).toHaveTextContent('These dates come from the calendar below.');
+    expect(screen.getByRole('status')).toHaveTextContent('Choose dates in the calendar above.');
 
     // Booking behaviour is untouched: the bookable day still selects for purchase.
     await user.click(screen.getByRole('button', { name: bookableDayName(10) }));
@@ -1155,6 +1160,8 @@ describe('App localization', () => {
     render(<App />);
 
     await screen.findByRole('heading', { name: 'No seats on sale for this day' });
+    const user = userEvent.setup();
+    await chooseAlertRange(user);
     expect(telegramCtas()).toHaveLength(1);
 
     signInWithTelegram();
@@ -1163,8 +1170,8 @@ describe('App localization', () => {
       expect(createTelegramAlertLink).toHaveBeenCalledWith({
         fromId: '7',
         toId: '4',
-        dateFrom: '2026-07-31',
-        dateTo: '2026-08-07',
+        dateFrom: isoDay(5),
+        dateTo: isoDay(12),
         locale: 'en',
       }),
     );
@@ -1173,7 +1180,9 @@ describe('App localization', () => {
     );
     // The primary path never leaves the page for a deep link.
     expect(openSpy).not.toHaveBeenCalled();
-    expect(await screen.findByText(/Alerts are on for Jul 31 – Aug 7/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(new RegExp(`Alerts are on for ${formatDateRange(isoDay(5), isoDay(12), 'en')}`)),
+    ).toBeInTheDocument();
     // The success state replaces the action instead of adding a second one.
     expect(telegramCtas()).toHaveLength(0);
     openSpy.mockRestore();
@@ -1190,6 +1199,8 @@ describe('App localization', () => {
     render(<App />);
 
     await screen.findByRole('heading', { name: 'No seats on sale for this day' });
+    const user = userEvent.setup();
+    await chooseAlertRange(user);
     signInWithTelegram();
 
     const fallback = await screen.findByRole('link', { name: /Open the bot/ });
@@ -1212,6 +1223,8 @@ describe('App localization', () => {
     render(<App />);
 
     await screen.findByRole('heading', { name: 'No seats on sale for this day' });
+    const user = userEvent.setup();
+    await chooseAlertRange(user);
     signInWithTelegram();
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not turn the alert on. Try again.');
@@ -1229,6 +1242,8 @@ describe('App localization', () => {
     render(<App />);
 
     await screen.findByRole('heading', { name: 'No seats on sale for this day' });
+    const user = userEvent.setup();
+    await chooseAlertRange(user);
     signInWithTelegram();
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not turn the alert on. Try again.');
@@ -1241,10 +1256,12 @@ describe('App localization', () => {
     vi.mocked(readAlertsEnabled).mockReturnValue(true);
     vi.mocked(readTelegramLoginConfig).mockReturnValue({ enabled: false, botUsername: null });
     window.history.replaceState(null, '', '/en/');
+    const user = userEvent.setup();
 
     render(<App />);
 
     await screen.findByRole('heading', { name: 'No seats on sale for this day' });
+    await chooseAlertRange(user);
 
     expect(telegramCtas()).toHaveLength(0);
     expect(screen.getByText('Telegram sign-in is not available in this environment.')).toBeInTheDocument();
@@ -1278,13 +1295,12 @@ describe('App localization', () => {
     render(<App />);
 
     await screen.findByRole('heading', { name: 'No seats on sale for this day' });
+    await chooseAlertRange(user);
     signInWithTelegram();
 
     expect(await screen.findByText(/Alerts are on for/)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Pick dates in the calendar' }));
-    await user.click(screen.getByRole('button', { name: rangeStartDayName(5) }));
-    await user.click(screen.getByRole('button', { name: rangeEndDayName(12) }));
+    await chooseAlertRange(user, 13, 20);
 
     // A new window is a new subscription: the old confirmation must not stand
     // in for it, and the action comes back for the new one.

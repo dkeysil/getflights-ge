@@ -53,13 +53,7 @@ import {
   withLocaleInUrl,
   type Locale,
 } from './lib/i18n';
-import {
-  alertRangeFromDate,
-  isSelectableAlertRangeEnd,
-  hasDatesInRange,
-  isValidAlertRange,
-  todayIso,
-} from './lib/alert-range';
+import { isSelectableAlertRangeEnd, hasDatesInRange, isValidAlertRange } from './lib/alert-range';
 import {
   loadManagedAlerts,
   readAlertsEnabled,
@@ -248,16 +242,6 @@ export function App() {
     setAlertError(null);
   }, [fromId, toId, alertDateFrom, alertDateTo]);
 
-  // Until the traveller touches the range themselves, the alert watches the day
-  // they are already looking at plus the week after it, so the dates in the
-  // panel never contradict the day highlighted in the calendar.
-  useEffect(() => {
-    if (!selectedDate || alertRangePinned) return;
-
-    const range = alertRangeFromDate(selectedDate);
-    setAlertDateFrom(range.dateFrom);
-    setAlertDateTo(range.dateTo);
-  }, [alertRangePinned, selectedDate]);
 
   useEffect(() => {
     if (!showManagePage || !manageRoute?.token) return;
@@ -314,9 +298,9 @@ export function App() {
   // that marker: the committed window is still the old one and painting it too
   // would make the half-finished pick look finished.
   const pendingRangeStart = alertRangePickingActive ? alertRangeStart : null;
-  // The window is painted on the calendar for as long as its configuration is on
-  // screen, so "Watching Jul 31 - Aug 7" and the marked cells cannot disagree.
-  const alertRangeComplete = isValidAlertRange(alertDateFrom, alertDateTo);
+  // A range is never implied from the booking date. It exists only after a
+  // traveller deliberately picked it (or opened a valid shared URL).
+  const alertRangeComplete = alertRangePinned && isValidAlertRange(alertDateFrom, alertDateTo);
   const alertRangeVisible = alertPanelVisible && alertConfigOpen && alertRangeComplete && !pendingRangeStart;
   const alertRouteLabel = `${fromCityName ?? ''} → ${toCityName ?? ''}`;
   const alertRangeLabel = formatDateRange(alertDateFrom, alertDateTo, locale);
@@ -433,13 +417,11 @@ export function App() {
     setAlertDateTo(dateTo);
   }
 
-  // Reset is the way back to the default, so it releases the pin instead of
-  // freezing today's answer, and it drops any half-finished pick.
-  function followSelectedDayRange() {
-    const range = alertRangeFromDate(selectedDate ?? todayIso());
+  // Clear the configuration rather than fabricating a default watched week.
+  function clearAlertRange() {
     setAlertRangePinned(false);
-    setAlertDateFrom(range.dateFrom);
-    setAlertDateTo(range.dateTo);
+    setAlertDateFrom('');
+    setAlertDateTo('');
     cancelAlertRangePick();
   }
 
@@ -907,37 +889,6 @@ export function App() {
         </aside>
 
         <div className="pane-main">
-          {/* Above the calendar it drives, and clear of the passenger and
-              purchase controls the traveller uses to actually buy a seat. */}
-          {alertPanelVisible && fromCityName && toCityName ? (
-            <TelegramAlertPanel
-              copy={copy}
-              mode={alertMode}
-              fromCityName={fromCityName}
-              toCityName={toCityName}
-              routeLabel={alertRouteLabel}
-              rangeLabel={alertRangeLabel}
-              hasSelectedDate={Boolean(selectedDate)}
-              open={alertConfigOpen}
-              onToggle={toggleAlertSetup}
-              calendarId={calendarGridId}
-              rangeSelecting={alertRangePickingActive}
-              rangeStep={alertRangeStep}
-              rangeStartLabel={alertRangeStartLabel}
-              onPickRange={beginAlertRangePick}
-              onCancelRangePick={cancelAlertRangePick}
-              onResetRange={followSelectedDayRange}
-              rangeComplete={alertRangeComplete && alertRouteValid}
-              rangeHasTickets={alertRangeHasTickets}
-              loginEnabled={telegramLogin.enabled}
-              botUsername={telegramLogin.botUsername}
-              submitting={alertSubmitting}
-              error={alertError}
-              result={alertResult}
-              onTelegramAuth={(user) => void bindAlertWithTelegram(user)}
-            />
-          ) : null}
-
           <section className={alertRangePickingActive ? 'calendar-panel picking-range' : 'calendar-panel'}>
             <div className="cal-head">
               <span className="mlabel">
@@ -1040,6 +991,34 @@ export function App() {
                 })}
               </div>
             )}
+            {alertPanelVisible && fromCityName && toCityName ? (
+              <TelegramAlertPanel
+                copy={copy}
+                mode={alertMode}
+                fromCityName={fromCityName}
+                toCityName={toCityName}
+                routeLabel={alertRouteLabel}
+                rangeLabel={alertRangeLabel}
+                hasSelectedDate={Boolean(selectedDate)}
+                open={alertConfigOpen}
+                onToggle={toggleAlertSetup}
+                calendarId={calendarGridId}
+                rangeSelecting={alertRangePickingActive}
+                rangeStep={alertRangeStep}
+                rangeStartLabel={alertRangeStartLabel}
+                onPickRange={beginAlertRangePick}
+                onCancelRangePick={cancelAlertRangePick}
+                onResetRange={clearAlertRange}
+                rangeComplete={alertRangeComplete && alertRouteValid}
+                rangeHasTickets={alertRangeHasTickets}
+                loginEnabled={telegramLogin.enabled}
+                botUsername={telegramLogin.botUsername}
+                submitting={alertSubmitting}
+                error={alertError}
+                result={alertResult}
+                onTelegramAuth={(user) => void bindAlertWithTelegram(user)}
+              />
+            ) : null}
           </section>
 
           <section className="day-detail">
@@ -1489,12 +1468,8 @@ function readInitialAlertSelection(alertsEnabled: boolean): {
   dateTo: string;
   rangeFromUrl: boolean;
 } {
-  // Today + a week is only what the very first paint shows: as soon as a day is
-  // selected the range follows the calendar, unless the URL already carried one.
-  const fallback = alertRangeFromDate(todayIso());
-
   if (typeof window === 'undefined' || !alertsEnabled) {
-    return { ...fallback, fromId: null, toId: null, rangeFromUrl: false };
+    return { dateFrom: '', dateTo: '', fromId: null, toId: null, rangeFromUrl: false };
   }
 
   const params = new URLSearchParams(window.location.search);
@@ -1506,8 +1481,8 @@ function readInitialAlertSelection(alertsEnabled: boolean): {
   return {
     fromId: params.get('from'),
     toId: params.get('to'),
-    dateFrom: hasValidRange && dateFrom ? dateFrom : fallback.dateFrom,
-    dateTo: hasValidRange && dateTo ? dateTo : fallback.dateTo,
+    dateFrom: hasValidRange && dateFrom ? dateFrom : '',
+    dateTo: hasValidRange && dateTo ? dateTo : '',
     rangeFromUrl: hasValidRange,
   };
 }

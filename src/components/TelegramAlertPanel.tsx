@@ -133,7 +133,7 @@ export function TelegramAlertPanel({
                 <span className="alert-range-legend">{copy.alertsRangeLegend}</span>
                 <strong className="alert-range-value">
                   <CalendarRange aria-hidden="true" size={14} />
-                  {rangeLabel}
+                  {rangeLabel || copy.alertsRangeEmpty}
                 </strong>
               </div>
               <div className="alert-range-actions">
@@ -146,11 +146,16 @@ export function TelegramAlertPanel({
                 >
                   {rangeSelecting ? copy.alertsRangeCancel : copy.alertsRangePick}
                 </button>
-                <button className="alert-chip" type="button" onClick={onResetRange}>
+                <button
+                  className="alert-chip"
+                  type="button"
+                  disabled={!rangeLabel && !rangeSelecting}
+                  onClick={onResetRange}
+                >
                   {copy.alertsRangeReset}
                 </button>
               </div>
-              {/* The pick happens in the calendar below, so the step has to be
+              {/* The pick happens in the calendar above, so the step has to be
                   announced here rather than left to the visual highlight. */}
               <p className="alert-range-hint" role="status">
                 {rangeSelecting
